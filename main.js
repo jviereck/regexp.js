@@ -25,9 +25,12 @@ Node.prototype.match = function (state) {
     return false;
 };
 
+Node.EMPTY = 'EMPTY';
 Node.CHAR = 'CHAR';
 Node.ALTR = 'ALTR';
-Node.GROP = 'GROP';
+Node.JOIN = 'JOIN';
+Node.GROUP_BEGIN = 'GROUP_BEGIN';
+Node.GROUP_END = 'GROUP_END';
 
 // node types:
 // - character
@@ -39,6 +42,7 @@ function State(str) {
     this.str = str;
     this.idx = 0;
     this.matches = {};
+    this.data = {};
 }
 
 State.prototype.incr = function() {
@@ -56,13 +60,47 @@ State.prototype.getCurrentChar = function() {
 State.prototype.clone = function() {
     // Not really a clone, but good enough here ;)
     return Object.create(this);
-}
+};
 
-State.prototype.store = function(idx, from, to) {
+State.prototype.recordMatch = function(idx, from, to) {
     this.matches[idx] = this.str.substring(from.idx, to.idx);
+};
+
+State.prototype.set = function(key, value) {
+    this.data[key] = value;
+};
+
+State.prototype.get = function(key) {
+    return this.data[key];
 }
 
+State.prototype.getCounts = function(idx) {
+    return this.counts[idx] || 0;
+};
 
+State.prototype.incCounts = function(idx) {
+    this.counts[idx] = (this.counts[idx] || 0) + 1;
+};
+
+
+// (|a)bc
+// <startGroup:1>
+// <alt>
+//   -
+//   a
+// <endGroup:1>
+// b
+// c
+
+// (|a){2,}bc
+// <counter:1:2:inf>
+//   <startGroup:1>
+//   <alt>
+//     -
+//     a
+//   <endGroup:1>
+// b
+// c
 
 function match(state, node) {
     var res;
@@ -86,21 +124,48 @@ function match(state, node) {
                     return res;
                 }
                 break;
-            case Node.GROP:
-                res = match(state.clone(), node.left);
-                if (!res) {
-                    return false;
-                }
-                res.store(node.data, state, res);
-                state = res;
+            case Node.EMPTY:
+            case Node.JOIN:
                 node = node.next;
                 break;
+
+            case Node.GROUP_BEGIN:
+                state.set(node.data, state);
+                node = node.next;
+                break;
+
+            case Node.GROUP_END:
+                var beginState = state.get(node.data);
+                state.recordMatch(node.data, beginState, state);
+                node = node.next;
+                break;
+
         }
     }
     return state;
 }
 
-function buildNodesForStr(str) {
+function retArr(nodes) {
+    return [nodes[0], nodes[nodes.length - 1]];
+}
+
+function bText(str) {
+    var nodeA, nodeB;
+
+    if (str === '') {
+        nodeA = new Node(Node.EMPTY);
+        nodeB = new Node(Node.EMPTY);
+        nodeA.next = nodeB;
+        return [nodeA, nodeB];
+    } else if (str.length === 1) {
+        nodeA = new Node(Node.CHAR);
+        nodeA.data = str;
+        nodeB = new Node(Node.EMPTY);
+
+        nodeA.next = nodeB;
+        return [nodeA, nodeB];
+    }
+
     var nodes = str.split('').map(function(ch, idx) {
         var node = new Node(Node.CHAR, idx, idx + 1);
         node.data = ch;
@@ -110,26 +175,60 @@ function buildNodesForStr(str) {
         nodes[i].next = nodes[i + 1];
     }
 
-    return nodes;
+    return retArr(nodes);
 }
 
+function bGroup(children, idx) {
+    var begin = new Node(Node.GROUP_BEGIN);
+    var end = new Node(Node.GROUP_END);
+
+    begin.data = end.data = idx;
+
+    begin.next = children[0];
+    children[1].next = end;
+
+    return [begin, end];
+}
+
+function bAlt(left, right) {
+    var altr = new Node(Node.ALTR);
+    var join = new Node(Node.JOIN);
+
+    altr.left = left[0];
+    altr.right = right[0];
+
+    left[1].next = join;
+    right[1].next = join;
+
+    return [altr, join];
+}
+
+function bJoin(left, right) {
+    left[1].next = right[0];
+    return [left[0], right[1]];
+}
+
+
+
 function run(value) {
-    var str = 'foo';
+    var str = 'abc';
 
-    var left = buildNodesForStr('foa')[0];
-    var right = buildNodesForStr('foo')[0];
-
-    var group = new Node(Node.GROP, 0 , 0);
-    group.left = right;
-    group.data = 1;
-
-
-    var node = new Node(Node.ALTR, 0, 7);
-    node.left = left;
-    node.right = group;
 
     var state = new State(str);
 
-    console.log(match(state, node));
+    var startNode = bJoin(
+            bGroup(
+                bAlt(
+                    bText(''),
+                    bText('a')
+                ),
+                1
+            ),
+            bText('bc')
+        )[0];
+
+    var endState = match(state, startNode);
+
+    console.log(endState.finished(), endState);
 }
 
