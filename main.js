@@ -208,11 +208,8 @@ function bJoin(left, right) {
     return [left[0], right[1]];
 }
 
-
-
 function run(value) {
     var str = 'abc';
-
 
     var state = new State(str);
 
