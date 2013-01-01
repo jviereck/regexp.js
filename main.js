@@ -27,6 +27,7 @@ Node.prototype.match = function (state) {
 
 Node.EMPTY = 'EMPTY';
 Node.CHAR = 'CHAR';
+Node.CHARSET = 'CHARSET';
 Node.ALTR = 'ALTR';
 Node.JOIN = 'JOIN';
 Node.GROUP_BEGIN = 'GROUP_BEGIN';
@@ -72,7 +73,7 @@ State.prototype.set = function(key, value) {
 
 State.prototype.get = function(key) {
     return this.data[key];
-}
+};
 
 State.prototype.getCounts = function(idx) {
     return this.counts[idx] || 0;
@@ -102,12 +103,37 @@ State.prototype.incCounts = function(idx) {
 // b
 // c
 
+// "ANY": DOT
+// 'a'.match(/[^\n\r\u2028\u2029]/)
+//
+// <not>
+//  \n |
+//
+
 function match(state, node) {
     var res;
     while (node && !state.finished()) {
         var nextChar = state.getCurrentChar();
 
         switch (node.type) {
+            case Node.CHARSET:
+                res = node.children.some(function(f) {
+                    return f(nextChar);
+                });
+
+                if (node.not) {
+                    res = !res;
+                }
+
+                if (res) {
+                    state.incr();
+                    node = node.next;
+                } else {
+                    return false;
+                }
+                break;
+
+
             case Node.CHAR:
                 if (node.data === nextChar) {
                     state.incr();
@@ -190,6 +216,28 @@ function bGroup(children, idx) {
     return [begin, end];
 }
 
+function bCharSet(isNot, str) {
+    var nodeA = new Node(Node.CHARSET);
+    nodeA.not = isNot;
+
+    // TODO: Add proper parsing of charSet here.
+    nodeA.children = str.split('').map(function(matchChar) {
+        return function(inputChar) {
+            return inputChar === matchChar;
+        };
+    });
+
+    var nodeB = new Node(Node.EMPTY);
+    nodeA.next = nodeB;
+
+    return [nodeA, nodeB];
+}
+
+// BuildDot is just a shorthand for a charSet excluding all newlines.
+function bDot() {
+    return bCharSet(true, '\n\r\u2028\u2029'),
+}
+
 function bAlt(left, right) {
     var altr = new Node(Node.ALTR);
     var join = new Node(Node.JOIN);
@@ -203,17 +251,23 @@ function bAlt(left, right) {
     return [altr, join];
 }
 
-function bJoin(left, right) {
-    left[1].next = right[0];
-    return [left[0], right[1]];
+function bJoin() {
+    var args = arguments;
+
+    for (var i = 0; i < args.length - 1; i++) {
+        args[i][1].next = args[i + 1][0];
+    }
+
+    return [args[0][0], args[args.length - 1][1]];
 }
 
 function run(value) {
-    var str = 'abc';
+    var str = 'dabc';
 
     var state = new State(str);
 
     var startNode = bJoin(
+            bDot(),
             bGroup(
                 bAlt(
                     bText(''),
@@ -226,6 +280,11 @@ function run(value) {
 
     var endState = match(state, startNode);
 
-    console.log(endState.finished(), endState);
+    if (endState) {
+        console.log(true, endState);
+    } else {
+        console.log(false);
+    }
+
 }
 
