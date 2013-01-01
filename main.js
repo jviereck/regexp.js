@@ -32,6 +32,7 @@ Node.ALTR = 'ALTR';
 Node.JOIN = 'JOIN';
 Node.GROUP_BEGIN = 'GROUP_BEGIN';
 Node.GROUP_END = 'GROUP_END';
+Node.REPEAT = 'REPEAT';
 
 // node types:
 // - character
@@ -44,6 +45,7 @@ function State(str) {
     this.idx = 0;
     this.matches = {};
     this.data = {};
+    this.counts = {};
 }
 
 State.prototype.incr = function() {
@@ -75,12 +77,8 @@ State.prototype.get = function(key) {
     return this.data[key];
 };
 
-State.prototype.getCounts = function(idx) {
-    return this.counts[idx] || 0;
-};
-
 State.prototype.incCounts = function(idx) {
-    this.counts[idx] = (this.counts[idx] || 0) + 1;
+    return this.counts[idx] = (this.counts[idx] || -1) + 1;
 };
 
 
@@ -116,6 +114,34 @@ function match(state, node) {
         var nextChar = state.getCurrentChar();
 
         switch (node.type) {
+            case Node.REPEAT:
+                // StateCounters start at -1 -> first inc makes the counter
+                // be zero.
+                var counter = state.incCounts(node.id);
+                if (counter < node.from) {
+                    // Haven't matched the minimum number yet
+                    // -> match one more time.
+                    res = match(state.clone(), node.child);
+                } else if (counter === node.to) {
+                    // Have matched the maximum number
+                    // -> nothing to change.
+                    res = state;
+                } else {
+                    // match \in {from, to}
+                    if (node.greedy) {
+                        res = match(state.clone(), node.child);
+                        if (!res) {
+                            res = match(state.clone(), node.next);
+                        }
+                    } else {
+                        res = match(state.clone(), node.next);
+                        if (!res) {
+                            res = match(state.clone(), node.child);
+                        }
+                    }
+                }
+                return res;
+
             case Node.CHARSET:
                 res = node.children.some(function(f) {
                     return f(nextChar);
@@ -235,7 +261,7 @@ function bCharSet(isNot, str) {
 
 // BuildDot is just a shorthand for a charSet excluding all newlines.
 function bDot() {
-    return bCharSet(true, '\n\r\u2028\u2029'),
+    return bCharSet(true, '\n\r\u2028\u2029')
 }
 
 function bAlt(left, right) {
@@ -261,23 +287,50 @@ function bJoin() {
     return [args[0][0], args[args.length - 1][1]];
 }
 
+
+var idCounter = 0;
+
+function bRepeat(greedy, from, to, children) {
+    var node = new Node(Node.REPEAT);
+    var nodeEmpty =  new Node(Node.EMPTY);
+
+    node.id = idCounter++;
+    node.greedy = greedy;
+    node.from = from;
+    node.to = to;
+
+    // Create a loop.
+    node.child = children[0];
+    children[1].next = node;
+
+    node.next = nodeEmpty;
+
+    return [node, nodeEmpty];
+}
+
 function run(value) {
-    var str = 'dabc';
 
-    var state = new State(str);
+    // var str = 'dabc';
+    // var startNode = bJoin(
+    //         bDot(),
+    //         bGroup(
+    //             bAlt(
+    //                 bText(''),
+    //                 bText('a')
+    //             ),
+    //             1
+    //         ),
+    //         bText('bc')
+    //     )[0];
 
+    var str = 'abab';
     var startNode = bJoin(
-            bDot(),
-            bGroup(
-                bAlt(
-                    bText(''),
-                    bText('a')
-                ),
-                1
-            ),
-            bText('bc')
+            bRepeat(true, 0, 100, bDot()),
+            bText('b')
         )[0];
 
+
+    var state = new State(str);
     var endState = match(state, startNode);
 
     if (endState) {
