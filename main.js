@@ -348,7 +348,7 @@ function run(value) {
             )
         ),
         bText('bc')
-    )[0], 4, {1: 'a'});
+    ), 4, {1: 'a'});
 
     test('abab', bJoin(
         bRepeat(true, 0, 100, bDot()),
@@ -356,7 +356,7 @@ function run(value) {
             1,
             bText('b')
         )
-    )[0], 4, {1: 'b'});
+    ), 4, {1: 'b'});
 
     test('abab', bJoin(
         bRepeat(false, 0, 100, bDot()),
@@ -364,15 +364,18 @@ function run(value) {
             1,
             bText('b')
         )
-    )[0], 2, {1: 'b'});
+    ), 2, {1: 'b'});
+
+    test('abcabd', bJoin(
+        bGroup(
+            1,
+            bText('abd')
+        )
+    ), 6, {1: 'abd'});
 
 }
 
-function test(str, startNode, lastIdx, matches) {
-    var state = new State(str);
-
-    var endState = match(state, startNode);
-
+function test(str, nodes, lastIdx, matches) {
     function fail(msg) {
         console.error(msg);
     }
@@ -380,6 +383,17 @@ function test(str, startNode, lastIdx, matches) {
     function pass() {
         console.log('PASSED TEST');
     }
+
+    // Note: Add to each start node the /(.)*?/ pattern to make the match
+    // work also from not only the beginning
+    var startNode = bJoin(
+        bRepeat(false, 0, str.length + 1, bDot()),
+        nodes//,
+    )[0];
+
+    var state = new State(str);
+    var endState = match(state, startNode);
+
 
     if (endState) {
         if (lastIdx === -1) {
