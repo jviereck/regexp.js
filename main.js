@@ -80,6 +80,10 @@ State.prototype.incCounts = function(idx) {
     return this.counts[idx] = (this.counts[idx] || -1) + 1;
 };
 
+State.prototype.isSame = function(state) {
+    var same = state.idx === this.idx && state.str === this.str;
+}
+
 
 // (|a)bc
 // <startGroup:1>
@@ -343,24 +347,62 @@ function run(value) {
     //         bText('bc')
     //     )[0];
 
-    var str = 'abab';
-    var startNode = bJoin(
-            bRepeat(true, 0, 100, bDot()),
-            bGroup(
-                1,
-                bText('b')
-            )
-        )[0];
 
+    test('abab', bJoin(
+        bRepeat(true, 0, 100, bDot()),
+        bGroup(
+            1,
+            bText('b')
+        )
+    )[0], 4, {1: 'b'});
 
+    test('abab', bJoin(
+        bRepeat(false, 0, 100, bDot()),
+        bGroup(
+            1,
+            bText('b')
+        )
+    )[0], 2, {1: 'b'});
+
+}
+
+function test(str, startNode, lastIdx, matches) {
     var state = new State(str);
+
     var endState = match(state, startNode);
 
-    if (endState) {
-        console.log(true, endState);
-    } else {
-        console.log(false);
+    function fail(msg) {
+        console.error(msg);
     }
 
+    function pass() {
+        console.log('PASSED TEST');
+    }
+
+    if (endState) {
+        if (lastIdx === -1) {
+            return fail('Got match but did not expect one');
+        }
+
+        if (endState.idx !== lastIdx) {
+            return fail('State lastIdx does not match expected one');
+        }
+
+        if (Object.keys(endState.matches).length !== Object.keys(matches).length) {
+            return fail('Matches number does not match');
+        }
+
+        for (var i in endState.matches) {
+            if (matches[i] !== endState.matches[i]) {
+                return fail('Expected match does not match');
+            }
+        }
+    } else {
+        if (lastIdx !== -1) {
+            return fail('Did not match but expected to do so');
+        }
+    }
+
+    pass();
 }
 
