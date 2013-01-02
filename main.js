@@ -81,37 +81,6 @@ State.prototype.incCounts = function(idx) {
     return this.counts[idx] = (this.counts[idx] || -1) + 1;
 };
 
-State.prototype.isSame = function(state) {
-    var same = state.idx === this.idx && state.str === this.str;
-}
-
-
-// (|a)bc
-// <startGroup:1>
-// <alt>
-//   -
-//   a
-// <endGroup:1>
-// b
-// c
-
-// (|a){2,}bc
-// <counter:1:2:inf>
-//   <startGroup:1>
-//   <alt>
-//     -
-//     a
-//   <endGroup:1>
-// b
-// c
-
-// "ANY": DOT
-// 'a'.match(/[^\n\r\u2028\u2029]/)
-//
-// <not>
-//  \n |
-//
-
 function match(state, node) {
     var res;
     while (node) {
