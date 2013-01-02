@@ -34,6 +34,7 @@ Node.JOIN = 'JOIN';
 Node.GROUP_BEGIN = 'GROUP_BEGIN';
 Node.GROUP_END = 'GROUP_END';
 Node.REPEAT = 'REPEAT';
+Node.NOT_MATCH = 'NOT_MATCH';
 
 // node types:
 // - character
@@ -185,6 +186,15 @@ function match(state, node) {
                 node = node.next;
                 break;
 
+            case Node.NOT_MATCH:
+                // Case of: x(?!y)
+                res = match(state.clone(), node.child);
+                if (res) {
+                    return false;
+                }
+                node = node.next;
+                break;
+
         }
     }
 
@@ -245,6 +255,12 @@ function bGroup(idx, children) {
 function bFollowMatch(children) {
     var id = idCounter++;
     return bGroup(-id, children);
+}
+
+function bNotFollowMatch(children) {
+    var node = new Node(Node.NOT_MATCH);
+    node.child = children[0];
+    return [node, node];
 }
 
 function bCharSet(isNot, str) {
@@ -357,6 +373,13 @@ function run(value) {
         bText('b'),
         bFollowMatch(
             bText('d')
+        )
+    )), 5, { 1: 'b' });
+
+    test('abcabd', bGroup(1, bJoin(
+        bText('b'),
+        bNotFollowMatch(
+            bText('c')
         )
     )), 5, { 1: 'b' });
 
