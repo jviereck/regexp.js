@@ -61,12 +61,11 @@ State.prototype.getCurrentChar = function() {
 };
 
 State.prototype.clone = function() {
-    // Not really a clone, but good enough here ;)
-    return Object.create(this);
+    return clone(this);
 };
 
 State.prototype.recordMatch = function(idx, from, to) {
-    this.matches[idx] = this.str.substring(from.idx, to.idx);
+    this.matches[idx] = this.str.substring(from, to);
 };
 
 State.prototype.set = function(key, value) {
@@ -110,7 +109,7 @@ State.prototype.incCounts = function(idx) {
 
 function match(state, node) {
     var res;
-    while (node && !state.finished()) {
+    while (node) {
         var nextChar = state.getCurrentChar();
 
         switch (node.type) {
@@ -143,6 +142,10 @@ function match(state, node) {
                 return res;
 
             case Node.CHARSET:
+                if (state.finished()) {
+                    return false;
+                }
+
                 res = node.children.some(function(f) {
                     return f(nextChar);
                 });
@@ -161,6 +164,10 @@ function match(state, node) {
 
 
             case Node.CHAR:
+                if (state.finished()) {
+                    return false;
+                }
+
                 if (node.data === nextChar) {
                     state.incr();
                     node = node.next;
@@ -182,18 +189,29 @@ function match(state, node) {
                 break;
 
             case Node.GROUP_BEGIN:
-                state.set(node.data, state);
+                if (node.data !== 0) {
+                    state.set(node.data, state.idx);
+                }
+
                 node = node.next;
                 break;
 
             case Node.GROUP_END:
-                var beginState = state.get(node.data);
-                state.recordMatch(node.data, beginState, state);
+                if (node.data !== 0) {
+                    var beginState = state.get(node.data);
+                    state.recordMatch(node.data, beginState, state.idx);
+                }
+
                 node = node.next;
                 break;
 
         }
     }
+
+    if (node) {
+        return false;
+    }
+
     return state;
 }
 
@@ -230,7 +248,9 @@ function bText(str) {
     return retArr(nodes);
 }
 
-function bGroup(children, idx) {
+// If group should be a not-remember-group like `(?:x)`, then set
+// `idx=0`.
+function bGroup(idx, children) {
     var begin = new Node(Node.GROUP_BEGIN);
     var end = new Node(Node.GROUP_END);
 
@@ -261,7 +281,7 @@ function bCharSet(isNot, str) {
 
 // BuildDot is just a shorthand for a charSet excluding all newlines.
 function bDot() {
-    return bCharSet(true, '\n\r\u2028\u2029')
+    return bCharSet(true, '\n\r\u2028\u2029');
 }
 
 function bAlt(left, right) {
@@ -326,7 +346,10 @@ function run(value) {
     var str = 'abab';
     var startNode = bJoin(
             bRepeat(true, 0, 100, bDot()),
-            bText('b')
+            bGroup(
+                1,
+                bText('b')
+            )
         )[0];
 
 
