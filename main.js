@@ -335,18 +335,19 @@ function bRepeat(greedy, from, to, children) {
 function run(value) {
 
     // var str = 'dabc';
-    // var startNode = bJoin(
-    //         bDot(),
-    //         bGroup(
-    //             bAlt(
-    //                 bText(''),
-    //                 bText('a')
-    //             ),
-    //             1
-    //         ),
-    //         bText('bc')
-    //     )[0];
 
+
+    test('dabc', bJoin(
+        bDot(),
+        bGroup(
+            1,
+            bAlt(
+                bText(''),
+                bText('a')
+            )
+        ),
+        bText('bc')
+    )[0], 4, {1: 'a'});
 
     test('abab', bJoin(
         bRepeat(true, 0, 100, bDot()),
