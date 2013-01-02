@@ -1,4 +1,5 @@
-//
+// Cool debugger written in Perl.
+// perl -E "use Regexp::Debugger; 'ababc' =~ / (a|b) b+ c /x"
 
 function Node(type, from, to) {
     this.type = type;
