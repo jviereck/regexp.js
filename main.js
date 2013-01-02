@@ -88,6 +88,8 @@ function match(state, node) {
 
         switch (node.type) {
             case Node.REPEAT:
+                // TODO: Reset values of groups.
+
                 // StateCounters start at -1 -> first inc makes the counter
                 // be zero.
                 var counter = state.incCounts(node.id);
@@ -163,17 +165,21 @@ function match(state, node) {
                 break;
 
             case Node.GROUP_BEGIN:
-                if (node.data !== 0) {
-                    state.set(node.data, state.idx);
-                }
+                state.set(node.data, state.idx);
 
                 node = node.next;
                 break;
 
             case Node.GROUP_END:
-                if (node.data !== 0) {
+                // If node.idx > 0, then it's a group to store the match.
+                if (node.data > 0) {
                     var beginState = state.get(node.data);
                     state.recordMatch(node.data, beginState, state.idx);
+                }
+
+                // Case of: x(?=y)
+                if (node.data < 0) {
+                    state.idx = state.get(node.data);
                 }
 
                 node = node.next;
@@ -234,6 +240,11 @@ function bGroup(idx, children) {
     children[1].next = end;
 
     return [begin, end];
+}
+
+function bFollowMatch(children) {
+    var id = idCounter++;
+    return bGroup(-id, children);
 }
 
 function bCharSet(isNot, str) {
@@ -341,6 +352,13 @@ function run(value) {
             bText('abd')
         )
     ), 6, {1: 'abd'});
+
+    test('abcabd', bGroup(1, bJoin(
+        bText('b'),
+        bFollowMatch(
+            bText('d')
+        )
+    )), 5, { 1: 'b' });
 
 }
 
