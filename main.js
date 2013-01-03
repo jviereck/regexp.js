@@ -1,3 +1,7 @@
+// Whole-script strict mode syntax
+"use strict";
+
+
 // Cool debugger written in Perl.
 // perl -E "use Regexp::Debugger; 'ababc' =~ / (a|b) b+ c /x"
 
@@ -205,6 +209,8 @@ function match(state, node) {
     return state;
 }
 
+var idCounter = 0;
+
 function retArr(nodes) {
     return [nodes[0], nodes[nodes.length - 1]];
 }
@@ -309,8 +315,6 @@ function bJoin() {
 }
 
 
-var idCounter = 0;
-
 function bRepeat(greedy, from, to, children) {
     var node = new Node(Node.REPEAT);
     var nodeEmpty =  new Node(Node.EMPTY);
@@ -329,11 +333,7 @@ function bRepeat(greedy, from, to, children) {
     return [node, nodeEmpty];
 }
 
-function run(value) {
-
-    // var str = 'dabc';
-
-
+function run() {
     test('dabc', bJoin(
         bDot(),
         bGroup(
@@ -382,7 +382,6 @@ function run(value) {
             bText('c')
         )
     )), 5, { 1: 'b' });
-
 }
 
 function test(str, nodes, lastIdx, matches) {
