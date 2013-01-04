@@ -158,6 +158,15 @@ function parse(str) {
         };
     }
 
+    function createQuantifier(min, max) {
+        return {
+            type: 'quantifier',
+            min: min,
+            max: max,
+            greedy: true
+        };
+    }
+
     function isEmpty(obj) {
         return obj.type === 'empty';
     }
@@ -171,6 +180,12 @@ function parse(str) {
         var res = str.substring(state.idx, state.idx + amount);
         state.idx += (amount || 1);
         return res;
+    }
+
+    function skip(value) {
+        if (!match(value)) {
+            throw expected('character: ' + value);
+        }
     }
 
     function match(value) {
@@ -264,33 +279,65 @@ function parse(str) {
             return createSpecial(res[0]);
         } else if (match('(?=')) {
             res = createGroup('onlyIf', parseDisjunction());
-            match(')');
+            skip(')');
             return res;
         } else if (match('(?!')) {
             res = createGroup('onlyIfNot', parseDisjunction());
-            match(')');
+            skip(')');
             return res;
         }
     }
 
-// Quantifier ::
-//      QuantifierPrefix
-//      QuantifierPrefix ?
-//
-// QuantifierPrefix ::
-//      *
-//      +
-//      ?
-//      { DecimalDigits }
-//      { DecimalDigits , }
-//      { DecimalDigits , DecimalDigits }
-//
+    function parseQuantifier() {    // DONE.
+        // Quantifier ::
+        //      QuantifierPrefix
+        //      QuantifierPrefix ?
+        //
+        // QuantifierPrefix ::
+        //      *
+        //      +
+        //      ?
+        //      { DecimalDigits }
+        //      { DecimalDigits , }
+        //      { DecimalDigits , DecimalDigits }
 
-//
-// PatternCharacter ::
-//      SourceCharacter but not any of: ^ $ \ . * + ? ( ) [ ] { } |
+        var res;
+        var quantifier;
+        var from, to;
 
-    function parseAtom() {
+        if (match('*')) {
+            quantifier = createQuantifier(0);
+        }
+        else if (match('+')) {
+            quantifier = createQuantifier(1);
+        }
+        else if (match('?')) {
+            quantifier = createQuantifier(0, 1);
+        }
+        else if (res = matchReg(/^\{([0-9]+)\}/)) {
+            from = parseInt(res[1], 10);
+            quantifier = createQuantifier(from, from);
+        }
+        else if (res = matchReg(/^\{([0-9]+),\}/)) {
+            from = parseInt(res[1], 10);
+            quantifier = createQuantifier(from);
+        }
+        else if (res = matchReg(/^\{([0-9]+),([0-9]+)\}/)) {
+            from = parseInt(res[1], 10);
+            to = parseInt(res[2], 10);
+            quantifier = createQuantifier(from, to);
+        }
+
+        if (quantifier) {
+            if (match('?')) {
+                quantifier.greedy = false;
+            }
+        }
+
+        return quantifier;
+    }
+
+    function parseAtom() {  // DONE.
         // Atom ::
         //      PatternCharacter
         //      .
@@ -305,18 +352,36 @@ function parse(str) {
             //      PatternCharacter
             return createPatternCharacter(res);
         }
-
-        if (match('.')) {
+        else if (match('.')) {
             //      .
             return createSpecial('any');
         }
-
-        if (match('\\')) {
+        else if (match('\\')) {
             //      \ AtomEscape
             var res = parseAtomEscape();
-            if (res) {
+            if (!res) {
                 throw expected('atomEscape');
             }
+            return res;
+        }
+        else if (res = parseCharacterClass()) {
+            return res;
+        }
+        else if (match('(?:')) {
+            res = parseDisjunction();
+            if (!res) {
+                throw expected('disjunction');
+            }
+            skip(')');
+            return createGroup('ignore', res);
+        }
+        else if (match('(')) {
+            res = parseDisjunction();
+            if (!res) {
+                throw expected('disjunction');
+            }
+            skip(')');
+            return createGroup('normal', res);
         }
     }
 
@@ -357,9 +422,9 @@ function parse(str) {
         // 15.10.2.11
         if (match('0')) {
             return createSepcial('nul');
-        } else if (res = match(/^[0-9]+/) {
+        } else if (res = matchReg(/^[0-9]+/) {
             return createBackreference(res);
-        } else if (res = match(/^[dDsSwW]/)) {
+        } else if (res = matchReg(/^[dDsSwW]/)) {
             return createSpecial(res[0]);
         }
          return false;
@@ -374,16 +439,16 @@ function parse(str) {
         //      IdentityEscape
 
         var res;
-        if (res = match(/^[fnrtv]/)) {
+        if (res = matchReg(/^[fnrtv]/)) {
         //      ControlEscape
             return createSpecial(res[0]);
-        } else if (res = match(/^c[a-zA-Z]/)) {
+        } else if (res = matchReg(/^c[a-zA-Z]/)) {
         //      c ControlLetter
             return createSpecial(res[0]);
-        } else if (res = match(/^x([0-9a-fA-F]{2})/)) {
+        } else if (res = matchReg(/^x([0-9a-fA-F]{2})/)) {
         //      HexEscapeSequence
             return createHexEscape(res);
-        } else  if (res = match(/^u([0-9a-fA-F]{4})/)) {
+        } else  if (res = matchReg(/^u([0-9a-fA-F]{4})/)) {
         //      UnicodeEscapeSequence
             return createUnicodeEscape(res);
         } else {
@@ -416,15 +481,19 @@ function parse(str) {
         }
     }
 
+    function parseCharacterClass() {
+
+        // CharacterClass ::
+        //      [ [lookahead ∉ {^}] ClassRanges ]
+        //      [ ^ ClassRanges ]
+    }
 
     function parseIdentifierPart() {    // TODO.
         // TODO: Steal from esprima.
         return null;
     }
 
-    function parseQuantifier() {
-        return false;
-    }
+
 
     function expected(str) {
         return new Error(str);
