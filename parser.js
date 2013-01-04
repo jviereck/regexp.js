@@ -479,13 +479,55 @@ function parse(str) {
         //      <ZWNJ>
             return createIdentityEscape(ZWNJ)
         }
+
+        return null;
     }
 
     function parseCharacterClass() {
-
         // CharacterClass ::
         //      [ [lookahead ∉ {^}] ClassRanges ]
         //      [ ^ ClassRanges ]
+
+        var res;
+        if (res = matchReg(/^\[\^/)) {
+            res = parseClassRange();
+            res.negative = true;
+            skip(']');
+            return res;
+        } else if (match('[')) {
+            res = parseClassRange();
+            skip(']');
+            return res;
+        }
+
+        return null;
+    }
+
+    function parseClassRange() {
+        // ClassRanges ::
+        //      [empty]
+        //      NonemptyClassRanges
+
+        var res;
+        if (res = parseNonemptyClassRanges()) {
+            return res;
+        } else {
+            return createEmpty();
+        }
+    }
+
+    function parseNonemptyClassRanges() {
+        // NonemptyClassRanges ::
+        //      ClassAtom
+        //      ClassAtom NonemptyClassRangesNoDash
+        //      ClassAtom - ClassAtom ClassRanges
+
+        var res;
+        res = parseClassAtom();
+        if (!res) {
+            throw expected('classAtom');
+        }
+
     }
 
     function parseIdentifierPart() {    // TODO.
