@@ -167,6 +167,27 @@ function parse(str) {
         };
     }
 
+    function createClassAtom(value) {
+        return {
+            type: 'classAtom',
+            value: value
+        };
+    }
+
+    function createAlternative(terms) {
+        return {
+            type: 'alternative',
+            terms: terms
+        };
+    }
+
+    function createCharacterClass(classRanges) {
+        return {
+            type: 'characterClass',
+            classRanges: classRanges
+        };
+    }
+
     function isEmpty(obj) {
         return obj.type === 'empty';
     }
@@ -196,6 +217,10 @@ function parse(str) {
         return res;
     }
 
+    function current(value) {
+        return str[state.idx] === value;
+    }
+
     function matchReg(regExp) {
         var subStr = str.substring(state.idx);
         var res = subStr.match(regExp);
@@ -214,6 +239,10 @@ function parse(str) {
 
         while (match('|')) {
             res.push(parseAlternative());
+        }
+
+        if (res.length === 1) {
+            return res[0];
         }
 
         return createDisjunction(res);
@@ -238,7 +267,7 @@ function parse(str) {
             res.push(term);
         }
 
-        return res;
+        return createAlternative(res);
     }
 
     function parseTerm() {  // DONE.
@@ -255,7 +284,7 @@ function parse(str) {
 
         var atom = parseAtom();
         if (atom) {
-            atom.quantifier = parseQuantifier();
+            atom.quantifier = parseQuantifier() || false;
             return atom;
         }
 
@@ -275,7 +304,7 @@ function parse(str) {
             return createAssertion('start');
         } else if (match('$')) {
             return createAssertion('end');
-        } else if (res = matchReg(/^\\b/) || res = matchReg(/^\\B/)) {
+        } else if ((res = matchReg(/^\\b/)) || (res = matchReg(/^\\B/))) {
             return createSpecial(res[0]);
         } else if (match('(?=')) {
             res = createGroup('onlyIf', parseDisjunction());
@@ -385,7 +414,11 @@ function parse(str) {
         }
     }
 
-    function parseAtomEscape() {    // DONE.
+    function parseClassEscape() {
+        return parseAtomEscape(true);
+    }
+
+    function parseAtomEscape(includeB) {    // DONE.
         // AtomEscape ::
         //      DecimalEscape
         //      CharacterEscape
@@ -396,6 +429,13 @@ function parse(str) {
         res = parseDecimalEscape();
         if (res) {
             return res;
+        }
+
+        // For ClassEscape
+        if (includeB) {
+            if (match('b')) {
+                return createSepcial('b');
+            }
         }
 
         res = parseCharacterEscape();
@@ -422,7 +462,7 @@ function parse(str) {
         // 15.10.2.11
         if (match('0')) {
             return createSepcial('nul');
-        } else if (res = matchReg(/^[0-9]+/) {
+        } else if (res = matchReg(/^[0-9]+/)) {
             return createBackreference(res);
         } else if (res = matchReg(/^[dDsSwW]/)) {
             return createSpecial(res[0]);
@@ -490,45 +530,129 @@ function parse(str) {
 
         var res;
         if (res = matchReg(/^\[\^/)) {
-            res = parseClassRange();
+            res = parseClassRanges();
             res.negative = true;
             skip(']');
-            return res;
+            return createCharacterClass(res);
         } else if (match('[')) {
-            res = parseClassRange();
+            res = parseClassRanges();
             skip(']');
-            return res;
+            return createCharacterClass(res);
         }
 
         return null;
     }
 
-    function parseClassRange() {
+    function parseClassRanges() {
         // ClassRanges ::
         //      [empty]
         //      NonemptyClassRanges
 
         var res;
-        if (res = parseNonemptyClassRanges()) {
-            return res;
-        } else {
+        if (current(']')) {
             return createEmpty();
+        } else {
+            res = parseNonemptyClassRanges();
+            if (!res) {
+                throw expected('nonEmptyClassRanges');
+            }
+            return res;
         }
     }
 
-    function parseNonemptyClassRanges() {
+    function parseHelperClassRanges(atom) {
+        if (match('-') && ) {
+        //      ClassAtom - ClassAtom ClassRanges
+            res = parseClassAtom();
+            if (!res) {
+                throw expected('classAtom');
+            }
+            var classRanges = parseClassRanges();
+            if (!classRanges) {
+                throw expected('classRanges');
+            }
+            return [createClassRange(atom, res)].concat(classRanges);
+        }
+
+        res = parseNonemptyClassRangesNoDash();
+        if (!res) {
+            throw expected('nonEmptyClassRangesNoDash');
+        }
+
+        return [atom].concat(res);
+    }
+
+    function parseNonemptyClassRanges() {   // DONE.
         // NonemptyClassRanges ::
         //      ClassAtom
         //      ClassAtom NonemptyClassRangesNoDash
         //      ClassAtom - ClassAtom ClassRanges
 
-        var res;
-        res = parseClassAtom();
-        if (!res) {
+        var atom = parseClassAtom();
+        if (!atom) {
             throw expected('classAtom');
         }
 
+        if (current(']')) {
+        //      ClassAtom
+            return atom;
+        }
+
+        //      ClassAtom NonemptyClassRangesNoDash
+        //      ClassAtom - ClassAtom ClassRanges
+        return parseHelperClassRanges(atom);
     }
+
+    function parseNonemptyClassRangesNoDash() {
+        // NonemptyClassRangesNoDash ::
+        //      ClassAtom
+        //      ClassAtomNoDash NonemptyClassRangesNoDash
+        //      ClassAtomNoDash - ClassAtom ClassRanges
+
+        var res;
+
+        if (current(']')) {
+            res = parseClassAtom();
+            if (!res) {
+                throw expected('classAtom');
+            }
+            return res;
+        }
+
+        res = parseClassAtomNoDash();
+        if (!res) {
+            throw expected('classAtomNoDash');
+        }
+
+        //      ClassAtomNoDash NonemptyClassRangesNoDash
+        //      ClassAtomNoDash - ClassAtom ClassRanges
+        return parseHelperClassRanges(res);
+    }
+
+    function parseClassAtom() {
+        // ClassAtom ::
+        //      -
+        //      ClassAtomNoDash
+        if (match('-')) {
+            return createClassAtom('-');
+        } else {
+            return parseClassAtomNoDash();
+        }
+    }
+
+    function parseClassAtomNoDash() {   // Done.
+        var res;
+        if (res = matchReg(/^[^\]-]/)) {
+            return createClassAtom(res[0]);
+        } else if (match('\\')) {
+            res = parseClassEscape();
+            if (!res) {
+                throw expected('classEscape');
+            }
+            return res;
+        }
+    }
+
 
     function parseIdentifierPart() {    // TODO.
         // TODO: Steal from esprima.
@@ -553,5 +677,5 @@ function testParse(str, expected) {
     }
 }
 
-testParse('a', '{"type":"disjunction","alternatives":[[{"type":"patternCharacter","data":"a","quantifier":false}]]}');
-testParse('a|bc', '{"type":"disjunction","alternatives":[[{"type":"patternCharacter","data":"a","quantifier":false}],[{"type":"patternCharacter","data":"b","quantifier":false},{"type":"patternCharacter","data":"c","quantifier":false}]]}');
+// testParse('a', '{"type":"alternative","terms":[{"type":"patternCharacter","data":"a","quantifier":false}]}');
+// testParse('a|bc', '{"type":"disjunction","alternatives":[{"type":"alternative","terms":[{"type":"patternCharacter","data":"a","quantifier":false}]},{"type":"alternative","terms":[{"type":"patternCharacter","data":"b","quantifier":false},{"type":"patternCharacter","data":"c","quantifier":false}]}]}');
