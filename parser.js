@@ -188,6 +188,21 @@ function parse(str) {
         };
     }
 
+    function createClassRange(start, end) {
+        return {
+            type: 'characterClassRange',
+            start: start,
+            end: end
+        };
+    }
+
+    function createIdentityEscape(char) {
+        return {
+            type: 'identityEscape',
+            char: char
+        };
+    }
+
     function isEmpty(obj) {
         return obj.type === 'empty';
     }
@@ -195,6 +210,15 @@ function parse(str) {
     var state = {
         idx: 0
     };
+
+    var stack = [];
+    function saveState() {
+        stack.push(state.idx);
+    }
+
+    function restoreState() {
+        state.idx = stack.pop();
+    }
 
     function incr(amount) {
         amount = (amount || 1);
@@ -219,6 +243,10 @@ function parse(str) {
 
     function current(value) {
         return str[state.idx] === value;
+    }
+
+    function next(value) {
+        return str[state.idx + 1] === value;
     }
 
     function matchReg(regExp) {
@@ -507,12 +535,15 @@ function parse(str) {
         var ZWNJ = '\u200D';
 
         var res;
-        state.save();
+        saveState();
         res = parseIdentifierPart();
         if (!res) {
         //      SourceCharacter but not IdentifierPart
             return createIdentityEscape(incr());
-        } else if (match(ZWJ)) {
+        }
+        restoreState();
+
+        if (match(ZWJ)) {
         //      <ZWJ>
             return createIdentityEscape(ZWJ)
         } else if (match(ZWNJ)) {
@@ -561,8 +592,10 @@ function parse(str) {
     }
 
     function parseHelperClassRanges(atom) {
-        if (match('-') && ) {
+        if (current('-') && !next(']')) {
         //      ClassAtom - ClassAtom ClassRanges
+            skip('-');
+
             res = parseClassAtom();
             if (!res) {
                 throw expected('classAtom');
@@ -611,7 +644,7 @@ function parse(str) {
 
         var res;
 
-        if (current(']')) {
+        if (next(']')) {
             res = parseClassAtom();
             if (!res) {
                 throw expected('classAtom');
@@ -641,8 +674,12 @@ function parse(str) {
     }
 
     function parseClassAtomNoDash() {   // Done.
+        // ClassAtomNoDash ::
+        //      SourceCharacter but not one of \ or ] or -
+        //      \ ClassEscape
+
         var res;
-        if (res = matchReg(/^[^\]-]/)) {
+        if (res = matchReg(/^[^\\\]-]/)) {
             return createClassAtom(res[0]);
         } else if (match('\\')) {
             res = parseClassEscape();
@@ -677,5 +714,7 @@ function testParse(str, expected) {
     }
 }
 
-// testParse('a', '{"type":"alternative","terms":[{"type":"patternCharacter","data":"a","quantifier":false}]}');
-// testParse('a|bc', '{"type":"disjunction","alternatives":[{"type":"alternative","terms":[{"type":"patternCharacter","data":"a","quantifier":false}]},{"type":"alternative","terms":[{"type":"patternCharacter","data":"b","quantifier":false},{"type":"patternCharacter","data":"c","quantifier":false}]}]}');
+testParse('a', '{"type":"alternative","terms":[{"type":"patternCharacter","data":"a","quantifier":false}]}');
+testParse('a|bc', '{"type":"disjunction","alternatives":[{"type":"alternative","terms":[{"type":"patternCharacter","data":"a","quantifier":false}]},{"type":"alternative","terms":[{"type":"patternCharacter","data":"b","quantifier":false},{"type":"patternCharacter","data":"c","quantifier":false}]}]}');
+testParse('[a]', '{"type":"alternative","terms":[{"type":"characterClass","classRanges":{"type":"classAtom","value":"a"},"quantifier":false}]}');
+testParse('[a-]', '{"type":"alternative","terms":[{"type":"characterClass","classRanges":[{"type":"classAtom","value":"a"},{"type":"classAtom","value":"-"}],"quantifier":false}]}');
