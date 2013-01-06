@@ -1,0 +1,100 @@
+[
+  {
+    "type": "alternative",
+    "terms": [
+      {
+        "type": "character",
+        "char": "a",
+        "quantifier": false
+      }
+    ]
+  },
+  {
+    "type": "disjunction",
+    "alternatives": [
+      {
+        "type": "alternative",
+        "terms": [
+          {
+            "type": "character",
+            "char": "a",
+            "quantifier": false
+          }
+        ]
+      },
+      {
+        "type": "alternative",
+        "terms": [
+          {
+            "type": "character",
+            "char": "b",
+            "quantifier": false
+          },
+          {
+            "type": "character",
+            "char": "c",
+            "quantifier": false
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "type": "alternative",
+    "terms": [
+      {
+        "type": "characterClass",
+        "classRanges": {
+          "type": "character",
+          "char": "a"
+        },
+        "quantifier": false
+      }
+    ]
+  },
+  {
+    "type": "alternative",
+    "terms": [
+      {
+        "type": "characterClass",
+        "classRanges": [
+          {
+            "type": "character",
+            "char": "a"
+          },
+          {
+            "type": "character",
+            "char": "-"
+          }
+        ],
+        "quantifier": false
+      }
+    ]
+  },
+  {
+    "type": "alternative",
+    "terms": [
+      {
+        "type": "characterClass",
+        "classRanges": {
+          "type": "identityEscape",
+          "char": "\\"
+        },
+        "quantifier": false
+      }
+    ]
+  },
+  {
+    "type": "alternative",
+    "terms": [
+      {
+        "type": "characterClass",
+        "classRanges": {
+          "type": "escapedDecimalEscape",
+          "value": "0001"
+        },
+        "quantifier": false
+      }
+    ]
+  }
+]

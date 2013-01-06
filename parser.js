@@ -93,6 +93,11 @@
 //      CharacterClassEscape
 
 
+// Uncertain stuff?
+//
+// - what does "backreference in classRanges mean?"
+//      'ab'.match(/(a)[\1]/)
+
 
 function parse(str) {
     function createAssertion(sub) {
@@ -102,10 +107,10 @@ function parse(str) {
         };
     }
 
-    function createPatternCharacter(matches) {
+    function createCharacter(matches) {
         return {
-            type: 'patternCharacter',
-            data: matches[0]
+            type: 'character',
+            char: matches[0]
         };
     }
 
@@ -129,24 +134,24 @@ function parse(str) {
         };
     }
 
-    function createBackreference(matches) {
+    function createEscapedDecimal(value) {
         return {
-            type: 'backreference',
-            data: matches[0]
-        }
+            type: 'escapedDecimalEscape',
+            value: value
+        };
     }
 
     function createHexEscape(matches) {
         return {
             type: 'hexEscape',
-            data: matches[1]
+            value: matches[1]
         };
     }
 
     function createUnicodeEscape(matches) {
         return {
             type: 'unicodeEscape',
-            data: matches[1]
+            value: matches[1]
         };
     }
 
@@ -164,13 +169,6 @@ function parse(str) {
             min: min,
             max: max,
             greedy: true
-        };
-    }
-
-    function createClassAtom(value) {
-        return {
-            type: 'classAtom',
-            value: value
         };
     }
 
@@ -407,7 +405,7 @@ function parse(str) {
 
         if (res = matchReg(/^[^^$\.*+?()[\]{}|]/)) {
             //      PatternCharacter
-            return createPatternCharacter(res);
+            return createCharacter(res);
         }
         else if (match('.')) {
             //      .
@@ -487,11 +485,8 @@ function parse(str) {
         //      d D s S w W
 
         var res;
-        // 15.10.2.11
-        if (match('0')) {
-            return createSepcial('nul');
-        } else if (res = matchReg(/^[0-9]+/)) {
-            return createBackreference(res);
+        if (res = matchReg(/^[0-9]+/)) {
+            return createEscapedDecimal(res[0]);
         } else if (res = matchReg(/^[dDsSwW]/)) {
             return createSpecial(res[0]);
         }
@@ -667,7 +662,7 @@ function parse(str) {
         //      -
         //      ClassAtomNoDash
         if (match('-')) {
-            return createClassAtom('-');
+            return createCharacter('-');
         } else {
             return parseClassAtomNoDash();
         }
@@ -680,7 +675,7 @@ function parse(str) {
 
         var res;
         if (res = matchReg(/^[^\\\]-]/)) {
-            return createClassAtom(res[0]);
+            return createCharacter(res[0]);
         } else if (match('\\')) {
             res = parseClassEscape();
             if (!res) {
@@ -699,22 +694,29 @@ function parse(str) {
 
 
     function expected(str) {
-        return new Error(str);
+        return new Error('Expected: ' + str);
     }
 
     return parseDisjunction();
 }
 
-
-function testParse(str, expected) {
-    if (JSON.stringify(parse(str)) !== expected) {
-        console.error('Failure parsing string %s', str);
-    } else {
-        console.log('PASSED PARSE TEST');
+if (typeof exports !== 'undefined') {
+    exports.parse = parse;
+} else {
+    function testParse(str, expected) {
+        if (JSON.stringify(parse(str)) !== expected) {
+            console.error('Failure parsing string %s', str);
+            console.log('expected', expected, 'got', JSON.stringify(parse(str)));
+        } else {
+            console.log('PASSED PARSE TEST');
+        }
     }
+
+
+
+    testParse('a', '{"type":"alternative","terms":[{"type":"patternCharacter","data":"a","quantifier":false}]}');
+    testParse('a|bc', '{"type":"disjunction","alternatives":[{"type":"alternative","terms":[{"type":"patternCharacter","data":"a","quantifier":false}]},{"type":"alternative","terms":[{"type":"patternCharacter","data":"b","quantifier":false},{"type":"patternCharacter","data":"c","quantifier":false}]}]}');
+    testParse('[a]', '{"type":"alternative","terms":[{"type":"characterClass","classRanges":{"type":"classAtom","value":"a"},"quantifier":false}]}');
+    testParse('[a-]', '{"type":"alternative","terms":[{"type":"characterClass","classRanges":[{"type":"classAtom","value":"a"},{"type":"classAtom","value":"-"}],"quantifier":false}]}');
 }
 
-testParse('a', '{"type":"alternative","terms":[{"type":"patternCharacter","data":"a","quantifier":false}]}');
-testParse('a|bc', '{"type":"disjunction","alternatives":[{"type":"alternative","terms":[{"type":"patternCharacter","data":"a","quantifier":false}]},{"type":"alternative","terms":[{"type":"patternCharacter","data":"b","quantifier":false},{"type":"patternCharacter","data":"c","quantifier":false}]}]}');
-testParse('[a]', '{"type":"alternative","terms":[{"type":"characterClass","classRanges":{"type":"classAtom","value":"a"},"quantifier":false}]}');
-testParse('[a-]', '{"type":"alternative","terms":[{"type":"characterClass","classRanges":[{"type":"classAtom","value":"a"},{"type":"classAtom","value":"-"}],"quantifier":false}]}');
