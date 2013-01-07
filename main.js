@@ -95,6 +95,10 @@ function match(state, node) {
             case Node.REPEAT:
                 // TODO: Reset values of groups.
 
+                // Don't use a for/while loop for the repetitions here as
+                // otherwise it's hard to get the matching for alt working
+                // without tracking some additional state.
+
                 // StateCounters start at -1 -> first inc makes the counter
                 // be zero.
                 var counter = state.incCounts(node.id);
@@ -119,7 +123,6 @@ function match(state, node) {
                             res = match(state.clone(), node.child);
                         }
                     }
-                    //
                     // if (!res) {
                     //     return state;
                     // }
