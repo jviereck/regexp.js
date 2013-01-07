@@ -708,20 +708,20 @@ function parse(str) {
 if (typeof exports !== 'undefined') {
     exports.parse = parse;
 } else {
-    function testParse(str, expected) {
-        if (JSON.stringify(parse(str)) !== expected) {
-            console.error('Failure parsing string %s', str);
-            console.log('expected', expected, 'got', JSON.stringify(parse(str)));
-        } else {
-            console.log('PASSED PARSE TEST');
-        }
-    }
+    // function testParse(str, expected) {
+    //     if (JSON.stringify(parse(str)) !== expected) {
+    //         console.error('Failure parsing string %s', str);
+    //         console.log('expected', expected, 'got', JSON.stringify(parse(str)));
+    //     } else {
+    //         console.log('PASSED PARSE TEST');
+    //     }
+    // }
 
 
 
-    testParse('a', '{"type":"alternative","terms":[{"type":"patternCharacter","data":"a","quantifier":false}]}');
-    testParse('a|bc', '{"type":"disjunction","alternatives":[{"type":"alternative","terms":[{"type":"patternCharacter","data":"a","quantifier":false}]},{"type":"alternative","terms":[{"type":"patternCharacter","data":"b","quantifier":false},{"type":"patternCharacter","data":"c","quantifier":false}]}]}');
-    testParse('[a]', '{"type":"alternative","terms":[{"type":"characterClass","classRanges":{"type":"classAtom","value":"a"},"quantifier":false}]}');
-    testParse('[a-]', '{"type":"alternative","terms":[{"type":"characterClass","classRanges":[{"type":"classAtom","value":"a"},{"type":"classAtom","value":"-"}],"quantifier":false}]}');
+    // testParse('a', '{"type":"alternative","terms":[{"type":"patternCharacter","data":"a","quantifier":false}]}');
+    // testParse('a|bc', '{"type":"disjunction","alternatives":[{"type":"alternative","terms":[{"type":"patternCharacter","data":"a","quantifier":false}]},{"type":"alternative","terms":[{"type":"patternCharacter","data":"b","quantifier":false},{"type":"patternCharacter","data":"c","quantifier":false}]}]}');
+    // testParse('[a]', '{"type":"alternative","terms":[{"type":"characterClass","classRanges":{"type":"classAtom","value":"a"},"quantifier":false}]}');
+    // testParse('[a-]', '{"type":"alternative","terms":[{"type":"characterClass","classRanges":[{"type":"classAtom","value":"a"},{"type":"classAtom","value":"-"}],"quantifier":false}]}');
 }
 

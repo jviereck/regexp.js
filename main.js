@@ -119,6 +119,10 @@ function match(state, node) {
                             res = match(state.clone(), node.child);
                         }
                     }
+                    //
+                    // if (!res) {
+                    //     return state;
+                    // }
                 }
                 return res;
 
@@ -276,10 +280,7 @@ function bCharSet(isNot, str) {
         };
     });
 
-    var nodeB = new Node(Node.EMPTY);
-    nodeA.next = nodeB;
-
-    return [nodeA, nodeB];
+    return [nodeA, nodeA];
 }
 
 // BuildDot is just a shorthand for a charSet excluding all newlines.
@@ -287,15 +288,15 @@ function bDot() {
     return bCharSet(true, '\n\r\u2028\u2029');
 }
 
-function bAlt(children) {
+function bAlt() {
     var altr = new Node(Node.ALTR);
     var join = new Node(Node.JOIN);
 
-    children.forEach(function(child) {
-        child.next = join;
+    var children = Array.prototype.slice.call(arguments, 0);
+    altr.children = children.map(function(list) {
+        list[1].next = join;
+        return list[0];
     });
-
-    altr.children = children;
 
     return [altr, join];
 }
@@ -313,7 +314,6 @@ function bJoin() {
 
 function bRepeat(greedy, from, to, children) {
     var node = new Node(Node.REPEAT);
-    var nodeEmpty =  new Node(Node.EMPTY);
 
     node.id = idCounter++;
     node.greedy = greedy;
@@ -324,9 +324,7 @@ function bRepeat(greedy, from, to, children) {
     node.child = children[0];
     children[1].next = node;
 
-    node.next = nodeEmpty;
-
-    return [node, nodeEmpty];
+    return [node, node];
 }
 
 function bEmpty() {
@@ -335,17 +333,17 @@ function bEmpty() {
 }
 
 function run() {
-    test('dabc', bJoin(
-        bDot(),
-        bGroup(
-            1,
-            bAlt(
-                bText(''),
-                bText('a')
-            )
-        ),
-        bText('bc')
-    ), 4, {1: 'a'});
+    // test('dabc', bJoin(
+    //     bDot(),
+    //     bGroup(
+    //         1,
+    //         bAlt(
+    //             bText(''),
+    //             bText('a')
+    //         )
+    //     ),
+    //     bText('bc')
+    // ), 4, {1: 'a'});
 
     test('abab', bJoin(
         bRepeat(true, 0, 100, bDot()),
@@ -355,34 +353,34 @@ function run() {
         )
     ), 4, {1: 'b'});
 
-    test('abab', bJoin(
-        bRepeat(false, 0, 100, bDot()),
-        bGroup(
-            1,
-            bText('b')
-        )
-    ), 2, {1: 'b'});
+    // test('abab', bJoin(
+    //     bRepeat(false, 0, 100, bDot()),
+    //     bGroup(
+    //         1,
+    //         bText('b')
+    //     )
+    // ), 2, {1: 'b'});
 
-    test('abcabd', bJoin(
-        bGroup(
-            1,
-            bText('abd')
-        )
-    ), 6, {1: 'abd'});
+    // test('abcabd', bJoin(
+    //     bGroup(
+    //         1,
+    //         bText('abd')
+    //     )
+    // ), 6, {1: 'abd'});
 
-    test('abcabd', bGroup(1, bJoin(
-        bText('b'),
-        bFollowMatch(
-            bText('d')
-        )
-    )), 5, { 1: 'b' });
+    // test('abcabd', bGroup(1, bJoin(
+    //     bText('b'),
+    //     bFollowMatch(
+    //         bText('d')
+    //     )
+    // )), 5, { 1: 'b' });
 
-    test('abcabd', bGroup(1, bJoin(
-        bText('b'),
-        bNotFollowMatch(
-            bText('c')
-        )
-    )), 5, { 1: 'b' });
+    // test('abcabd', bGroup(1, bJoin(
+    //     bText('b'),
+    //     bNotFollowMatch(
+    //         bText('c')
+    //     )
+    // )), 5, { 1: 'b' });
 }
 
 
@@ -403,7 +401,7 @@ function walk(node, inCharacterClass) {
             return bText(node.char);
 
         case 'quantifier':
-            return bRepeat(node.greedy, node.from, node.to, walk(node.child));
+            return bRepeat(node.greedy, node.min, node.max, walk(node.child));
 
         case 'group':
             res = walk(node.disjunction);
@@ -432,7 +430,9 @@ function walk(node, inCharacterClass) {
     }
 }
 
-function run(matchStr, regExpStr) {
+function exec(matchStr, regExpStr) {
+    // tests: 'abc', 'a+'
+
     var parseTree = parse(regExpStr);
 
     groupCounter = 1;
