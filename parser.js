@@ -168,7 +168,8 @@ function parse(str) {
             type: 'quantifier',
             min: min,
             max: max,
-            greedy: true
+            greedy: true,
+            child: null // set later on
         };
     }
 
@@ -310,7 +311,11 @@ function parse(str) {
 
         var atom = parseAtom();
         if (atom) {
-            atom.quantifier = parseQuantifier() || false;
+            var quantifier = parseQuantifier() || false;
+            if (quantifier) {
+                quantifier.child = atom;
+                return quantifier;
+            }
             return atom;
         }
 

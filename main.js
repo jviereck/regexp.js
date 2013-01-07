@@ -157,13 +157,14 @@ function match(state, node) {
                 }
                 break;
             case Node.ALTR:
-                res = match(state.clone(), node.left);
-                if (!res) {
-                    return match(state.clone(), node.right);
-                } else {
-                    return res;
+                for (var i = 0; i < node.children.length; i++) {
+                    res = match(state.clone(), node.children[i]);
+                    if (res) {
+                        return res;
+                    }
                 }
-                break;
+                return null;
+
             case Node.EMPTY:
             case Node.JOIN:
                 node = node.next;
@@ -220,16 +221,11 @@ function bText(str) {
 
     if (str === '') {
         nodeA = new Node(Node.EMPTY);
-        nodeB = new Node(Node.EMPTY);
-        nodeA.next = nodeB;
-        return [nodeA, nodeB];
+        return [nodeA, nodeA];
     } else if (str.length === 1) {
         nodeA = new Node(Node.CHAR);
         nodeA.data = str;
-        nodeB = new Node(Node.EMPTY);
-
-        nodeA.next = nodeB;
-        return [nodeA, nodeB];
+        return [nodeA, nodeA];
     }
 
     var nodes = str.split('').map(function(ch, idx) {
@@ -291,15 +287,15 @@ function bDot() {
     return bCharSet(true, '\n\r\u2028\u2029');
 }
 
-function bAlt(left, right) {
+function bAlt(children) {
     var altr = new Node(Node.ALTR);
     var join = new Node(Node.JOIN);
 
-    altr.left = left[0];
-    altr.right = right[0];
+    children.forEach(function(child) {
+        child.next = join;
+    });
 
-    left[1].next = join;
-    right[1].next = join;
+    altr.children = children;
 
     return [altr, join];
 }
@@ -331,6 +327,11 @@ function bRepeat(greedy, from, to, children) {
     node.next = nodeEmpty;
 
     return [node, nodeEmpty];
+}
+
+function bEmpty() {
+    var node = new Node(Node.EMPTY);
+    return [node, node];
 }
 
 function run() {
@@ -382,6 +383,70 @@ function run() {
             bText('c')
         )
     )), 5, { 1: 'b' });
+}
+
+
+var groupCounter = 1;
+function walk(node, inCharacterClass) {
+    var arr;
+    var res;
+    switch (node.type) {
+        case 'disjunction':
+            arr = node.alternatives.map(walk);
+            return bAlt(arr);
+
+        case 'alternative':
+            arr = node.terms.map(walk);
+            return bJoin.apply(null, arr);
+
+        case 'character':
+            return bText(node.char);
+
+        case 'quantifier':
+            return bRepeat(node.greedy, node.from, node.to, walk(node.child));
+
+        case 'group':
+            res = walk(node.disjunction);
+            if (node.behavior === 'onlyIfNot') {
+                return bNotFollowMatch(res);
+            } else {
+                var idx;
+                if (node.behavior === 'onlyIf') {
+                    idx = -1;
+                } else if (node.behavior === 'ignore') {
+                    idx = 0;
+                } else {
+                    idx = groupCounter++;
+                }
+                return bGroup(idx, res);
+            }
+            return bGroup()
+                // onlyIf
+                // onlyIfNot
+
+        case 'empty':
+            return bEmpty();
+
+        default:
+            throw new Error('Unsupported node type: ' + node.type);
+    }
+}
+
+function run(matchStr, regExpStr) {
+    var parseTree = parse(regExpStr);
+
+    groupCounter = 1;
+    var nodes = walk(parseTree);
+
+    var startNode = bJoin(
+        bRepeat(false, 0, matchStr.length + 1, bDot()),
+        nodes//,
+    )[0];
+
+    var state = new State(matchStr);
+    var endState = match(state, startNode);
+
+    return endState;
 }
 
 function test(str, nodes, lastIdx, matches) {
