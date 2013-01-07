@@ -336,17 +336,17 @@ function bEmpty() {
 }
 
 function run() {
-    // test('dabc', bJoin(
-    //     bDot(),
-    //     bGroup(
-    //         1,
-    //         bAlt(
-    //             bText(''),
-    //             bText('a')
-    //         )
-    //     ),
-    //     bText('bc')
-    // ), 4, {1: 'a'});
+    test('dabc', bJoin(
+        bDot(),
+        bGroup(
+            1,
+            bAlt(
+                bText(''),
+                bText('a')
+            )
+        ),
+        bText('bc')
+    ), 4, {1: 'a'});
 
     test('abab', bJoin(
         bRepeat(true, 0, 100, bDot()),
@@ -356,34 +356,34 @@ function run() {
         )
     ), 4, {1: 'b'});
 
-    // test('abab', bJoin(
-    //     bRepeat(false, 0, 100, bDot()),
-    //     bGroup(
-    //         1,
-    //         bText('b')
-    //     )
-    // ), 2, {1: 'b'});
+    test('abab', bJoin(
+        bRepeat(false, 0, 100, bDot()),
+        bGroup(
+            1,
+            bText('b')
+        )
+    ), 2, {1: 'b'});
 
-    // test('abcabd', bJoin(
-    //     bGroup(
-    //         1,
-    //         bText('abd')
-    //     )
-    // ), 6, {1: 'abd'});
+    test('abcabd', bJoin(
+        bGroup(
+            1,
+            bText('abd')
+        )
+    ), 6, {1: 'abd'});
 
-    // test('abcabd', bGroup(1, bJoin(
-    //     bText('b'),
-    //     bFollowMatch(
-    //         bText('d')
-    //     )
-    // )), 5, { 1: 'b' });
+    test('abcabd', bGroup(1, bJoin(
+        bText('b'),
+        bFollowMatch(
+            bText('d')
+        )
+    )), 5, { 1: 'b' });
 
-    // test('abcabd', bGroup(1, bJoin(
-    //     bText('b'),
-    //     bNotFollowMatch(
-    //         bText('c')
-    //     )
-    // )), 5, { 1: 'b' });
+    test('abcabd', bGroup(1, bJoin(
+        bText('b'),
+        bNotFollowMatch(
+            bText('c')
+        )
+    )), 5, { 1: 'b' });
 }
 
 
