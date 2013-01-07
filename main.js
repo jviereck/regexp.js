@@ -83,7 +83,8 @@ State.prototype.get = function(key) {
 };
 
 State.prototype.incCounts = function(idx) {
-    return this.counts[idx] = (this.counts[idx] || -1) + 1;
+    var oldValue = this.counts[idx] === undefined ? -1 : this.counts[idx];
+    return this.counts[idx] = oldValue + 1;
 };
 
 function match(state, node) {
@@ -116,6 +117,9 @@ function match(state, node) {
                         res = match(state.clone(), node.child);
                         if (!res) {
                             res = match(state.clone(), node.next);
+                            if (!res) {
+                                return false;
+                            }
                         }
                     } else {
                         res = match(state.clone(), node.next);
@@ -123,9 +127,6 @@ function match(state, node) {
                             res = match(state.clone(), node.child);
                         }
                     }
-                    // if (!res) {
-                    //     return state;
-                    // }
                 }
                 return res;
 
@@ -185,13 +186,15 @@ function match(state, node) {
 
             case Node.GROUP_END:
                 // If node.idx > 0, then it's a group to store the match.
-                if (node.data > 0) {
+                if (node.data >= 0) {
                     var beginState = state.get(node.data);
                     state.recordMatch(node.data, beginState, state.idx);
                 }
 
+                // node.data === -1 // don't remember the match
+
                 // Case of: x(?=y)
-                if (node.data < 0) {
+                if (node.data < -1) {
                     state.idx = state.get(node.data);
                 }
 
@@ -263,7 +266,7 @@ function bGroup(idx, children) {
 
 function bFollowMatch(children) {
     var id = idCounter++;
-    return bGroup(-id, children);
+    return bGroup(-id - 1, children);
 }
 
 function bNotFollowMatch(children) {
@@ -346,7 +349,7 @@ function run() {
             )
         ),
         bText('bc')
-    ), 4, {1: 'a'});
+    ), 4, { 0: 'dabc', 1: 'a'});
 
     test('abab', bJoin(
         bRepeat(true, 0, 100, bDot()),
@@ -354,7 +357,7 @@ function run() {
             1,
             bText('b')
         )
-    ), 4, {1: 'b'});
+    ), 4, { 0: 'abab', 1: 'b'});
 
     test('abab', bJoin(
         bRepeat(false, 0, 100, bDot()),
@@ -362,28 +365,30 @@ function run() {
             1,
             bText('b')
         )
-    ), 2, {1: 'b'});
+    ), 2, { 0: 'ab', 1: 'b'});
 
     test('abcabd', bJoin(
         bGroup(
             1,
             bText('abd')
         )
-    ), 6, {1: 'abd'});
+    ), 6, { 0: 'abd', 1: 'abd'});
 
     test('abcabd', bGroup(1, bJoin(
         bText('b'),
         bFollowMatch(
             bText('d')
         )
-    )), 5, { 1: 'b' });
+    )), 5, { 0: 'b', 1: 'b' });
 
     test('abcabd', bGroup(1, bJoin(
         bText('b'),
         bNotFollowMatch(
             bText('c')
         )
-    )), 5, { 1: 'b' });
+    )), 5, { 0: 'b', 1: 'b' });
+
+    assertEndState(exec('a', 'a+'), 1, { 0: 'a' });
 }
 
 
@@ -439,7 +444,7 @@ function exec(matchStr, regExpStr) {
     var parseTree = parse(regExpStr);
 
     groupCounter = 1;
-    var nodes = walk(parseTree);
+    var nodes = bGroup(0, walk(parseTree));
 
     var startNode = bJoin(
         bRepeat(false, 0, matchStr.length + 1, bDot()),
@@ -452,7 +457,7 @@ function exec(matchStr, regExpStr) {
     return endState;
 }
 
-function test(str, nodes, lastIdx, matches) {
+function assertEndState(endState, lastIdx, matches) {
     function fail(msg) {
         console.error(msg);
     }
@@ -460,17 +465,6 @@ function test(str, nodes, lastIdx, matches) {
     function pass() {
         console.log('PASSED TEST');
     }
-
-    // Note: Add to each start node the /(.)*?/ pattern to make the match
-    // work also from not only the beginning
-    var startNode = bJoin(
-        bRepeat(false, 0, str.length + 1, bDot()),
-        nodes//,
-    )[0];
-
-    var state = new State(str);
-    var endState = match(state, startNode);
-
 
     if (endState) {
         if (lastIdx === -1) {
@@ -495,7 +489,20 @@ function test(str, nodes, lastIdx, matches) {
             return fail('Did not match but expected to do so');
         }
     }
-
     pass();
+}
+
+function test(str, nodes, lastIdx, matches) {
+    // Note: Add to each start node the /(.)*?/ pattern to make the match
+    // work also from not only the beginning
+    var startNode = bJoin(
+        bRepeat(false, 0, str.length + 1, bDot()),
+        bGroup(0, nodes)
+    )[0];
+
+    var state = new State(str);
+    var endState = match(state, startNode);
+
+    assertEndState(endState, lastIdx, matches);
 }
 
