@@ -349,7 +349,7 @@ function run() {
             )
         ),
         bText('bc')
-    ), 4, { 0: 'dabc', 1: 'a'});
+    ), 4, ['dabc', 'a']);
 
     test('abab', bJoin(
         bRepeat(true, 0, 100, bDot()),
@@ -357,7 +357,7 @@ function run() {
             1,
             bText('b')
         )
-    ), 4, { 0: 'abab', 1: 'b'});
+    ), 4, ['abab', 'b']);
 
     test('abab', bJoin(
         bRepeat(false, 0, 100, bDot()),
@@ -365,30 +365,30 @@ function run() {
             1,
             bText('b')
         )
-    ), 2, { 0: 'ab', 1: 'b'});
+    ), 2, ['ab', 'b']);
 
     test('abcabd', bJoin(
         bGroup(
             1,
             bText('abd')
         )
-    ), 6, { 0: 'abd', 1: 'abd'});
+    ), 6, ['abd', 'abd']);
 
     test('abcabd', bGroup(1, bJoin(
         bText('b'),
         bFollowMatch(
             bText('d')
         )
-    )), 5, { 0: 'b', 1: 'b' });
+    )), 5, ['b', 'b']);
 
     test('abcabd', bGroup(1, bJoin(
         bText('b'),
         bNotFollowMatch(
             bText('c')
         )
-    )), 5, { 0: 'b', 1: 'b' });
+    )), 5, ['b', 'b']);
 
-    assertEndState(exec('a', 'a+'), 1, { 0: 'a' });
+    assertEndState(exec('a', 'a+'), 1, ['a']);
 }
 
 
@@ -454,6 +454,9 @@ function exec(matchStr, regExpStr) {
     var state = new State(matchStr);
     var endState = match(state, startNode);
 
+    if (!endState) {
+        return null;
+    }
     return endState;
 }
 
