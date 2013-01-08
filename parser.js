@@ -180,10 +180,11 @@ function parse(str) {
         };
     }
 
-    function createCharacterClass(classRanges) {
+    function createCharacterClass(classRanges, negative) {
         return {
             type: 'characterClass',
-            classRanges: classRanges
+            classRanges: classRanges,
+            negative: negative || false
         };
     }
 
@@ -562,9 +563,8 @@ function parse(str) {
         var res;
         if (res = matchReg(/^\[\^/)) {
             res = parseClassRanges();
-            res.negative = true;
             skip(']');
-            return createCharacterClass(res);
+            return createCharacterClass(res, true);
         } else if (match('[')) {
             res = parseClassRanges();
             skip(']');
@@ -628,7 +628,7 @@ function parse(str) {
 
         if (current(']')) {
         //      ClassAtom
-            return atom;
+            return [atom];
         }
 
         //      ClassAtom NonemptyClassRangesNoDash

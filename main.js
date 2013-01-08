@@ -275,6 +275,14 @@ function bNotFollowMatch(children) {
     return [node, node];
 }
 
+function bCharacterClass(isNegative, matches) {
+    var nodeA = new Node(Node.CHARSET);
+    nodeA.not = isNegative;
+    nodeA.children = matches;
+
+    return [nodeA, nodeA];
+}
+
 function bCharSet(isNot, str) {
     var nodeA = new Node(Node.CHARSET);
     nodeA.not = isNot;
@@ -389,8 +397,21 @@ function run() {
     )), 5, ['b', 'b']);
 
     assertEndState(exec('a', 'a+'), 1, ['a']);
+    assertEndState(exec('da', '[cba]'), 2, ['a']);
 }
 
+function buildClassMatcher(entry) {
+    switch (entry.type) {
+        case 'character':
+            return function(input) {
+                return entry.char === input;
+            }
+            break;
+
+        default:
+            throw new Error('Unkown classRange entry type: ' + entry.type);
+    }
+}
 
 var groupCounter = 1;
 function walk(node, inCharacterClass) {
@@ -426,9 +447,13 @@ function walk(node, inCharacterClass) {
                 }
                 return bGroup(idx, res);
             }
-            return bGroup()
+            return bGroup() // TODO!
                 // onlyIf
                 // onlyIfNot
+
+        case 'characterClass':
+            var matcher = node.classRanges.map(buildClassMatcher);
+            return bCharacterClass(node.negative, matcher);
 
         case 'empty':
             return bEmpty();
