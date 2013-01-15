@@ -4,8 +4,7 @@
     "terms": [
       {
         "type": "character",
-        "char": "a",
-        "quantifier": false
+        "char": "a"
       }
     ]
   },
@@ -17,8 +16,7 @@
         "terms": [
           {
             "type": "character",
-            "char": "a",
-            "quantifier": false
+            "char": "a"
           }
         ]
       },
@@ -27,13 +25,11 @@
         "terms": [
           {
             "type": "character",
-            "char": "b",
-            "quantifier": false
+            "char": "b"
           },
           {
             "type": "character",
-            "char": "c",
-            "quantifier": false
+            "char": "c"
           }
         ]
       }
@@ -44,11 +40,13 @@
     "terms": [
       {
         "type": "characterClass",
-        "classRanges": {
-          "type": "character",
-          "char": "a"
-        },
-        "quantifier": false
+        "classRanges": [
+          {
+            "type": "character",
+            "char": "a"
+          }
+        ],
+        "negative": false
       }
     ]
   },
@@ -67,7 +65,7 @@
             "char": "-"
           }
         ],
-        "quantifier": false
+        "negative": false
       }
     ]
   },
@@ -76,11 +74,13 @@
     "terms": [
       {
         "type": "characterClass",
-        "classRanges": {
-          "type": "identityEscape",
-          "char": "\\"
-        },
-        "quantifier": false
+        "classRanges": [
+          {
+            "type": "identityEscape",
+            "char": "\\"
+          }
+        ],
+        "negative": false
       }
     ]
   },
@@ -89,11 +89,41 @@
     "terms": [
       {
         "type": "characterClass",
-        "classRanges": {
-          "type": "escapedDecimalEscape",
-          "value": "0001"
-        },
-        "quantifier": false
+        "classRanges": [
+          {
+            "type": "escapedDecimalEscape",
+            "value": "0001"
+          }
+        ],
+        "negative": false
+      }
+    ]
+  },
+  {
+    "type": "alternative",
+    "terms": [
+      {
+        "type": "group",
+        "behavior": "normal",
+        "disjunction": {
+          "type": "alternative",
+          "terms": [
+            {
+              "type": "quantifier",
+              "min": 0,
+              "max": 1,
+              "greedy": true,
+              "child": {
+                "type": "character",
+                "char": ":"
+              }
+            },
+            {
+              "type": "character",
+              "char": "b"
+            }
+          ]
+        }
       }
     ]
   }

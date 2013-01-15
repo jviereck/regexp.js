@@ -234,11 +234,9 @@ function parse(str) {
     }
 
     function match(value) {
-        var res = str[state.idx] === value;
-        if (res) {
-            incr();
+        if (str.indexOf(value, state.idx) === state.idx) {
+            return incr(value.length);
         }
-        return res;
     }
 
     function current(value) {

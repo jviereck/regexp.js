@@ -16,7 +16,7 @@ task("test", function() {
         var res = parseResult[idx];
 
         if (JSON.stringify(par) !== JSON.stringify(res)) {
-            console.error('Failure parsing string %s', str);
+            console.error('Failure parsing string %s', input);
         } else {
             console.log('PASSED TEST: ' + input);
         }

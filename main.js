@@ -398,6 +398,7 @@ function run() {
 
     assertEndState(exec('a', 'a+'), 1, ['a']);
     assertEndState(exec('da', '[cba]'), 2, ['a']);
+    assertEndState(exec('abc', 'a(?:b)c'), 3, ['abc']);
 }
 
 function buildClassMatcher(entry) {
@@ -439,17 +440,14 @@ function walk(node, inCharacterClass) {
             } else {
                 var idx;
                 if (node.behavior === 'onlyIf') {
-                    idx = -1;
+                    idx = -2;
                 } else if (node.behavior === 'ignore') {
-                    idx = 0;
+                    idx = -1;
                 } else {
                     idx = groupCounter++;
                 }
                 return bGroup(idx, res);
             }
-            return bGroup() // TODO!
-                // onlyIf
-                // onlyIfNot
 
         case 'characterClass':
             var matcher = node.classRanges.map(buildClassMatcher);
