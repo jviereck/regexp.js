@@ -126,5 +126,32 @@
         }
       }
     ]
+  },
+  {
+    "type": "alternative",
+    "terms": [
+      {
+        "type": "group",
+        "behavior": "normal",
+        "disjunction": {
+          "type": "alternative",
+          "terms": [
+            {
+              "type": "quantifier",
+              "min": 0,
+              "max": 1,
+              "greedy": true,
+              "child": {
+                "type": "empty"
+              }
+            },
+            {
+              "type": "character",
+              "char": "b"
+            }
+          ]
+        }
+      }
+    ]
   }
 ]

@@ -308,17 +308,13 @@ function parse(str) {
             return assertion;
         }
 
-        var atom = parseAtom();
-        if (atom) {
-            var quantifier = parseQuantifier() || false;
-            if (quantifier) {
-                quantifier.child = atom;
-                return quantifier;
-            }
-            return atom;
+        var atom = parseAtom() || createEmpty();;
+        var quantifier = parseQuantifier() || false;
+        if (quantifier) {
+            quantifier.child = atom;
+            return quantifier;
         }
-
-        return createEmpty();
+        return atom;
     }
 
     function parseAssertion() { // DONE.
