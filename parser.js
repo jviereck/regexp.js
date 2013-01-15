@@ -191,8 +191,8 @@ function parse(str) {
     function createClassRange(start, end) {
         return {
             type: 'characterClassRange',
-            start: start,
-            end: end
+            min: start,
+            max: end
         };
     }
 

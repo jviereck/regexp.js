@@ -415,6 +415,7 @@ function run() {
     assertEndState(exec('abdabc', 'ab(?=c)'), 5, ['ab']); // Only if not followed by
     assertEndState(exec('a ', '\\u0020'), 2, [' ']);
     assertEndState(exec('a ', '[\\u0020]'), 2, [' ']);
+    assertEndState(exec('d', '[a-z]'), 1, ['d']);
 }
 
 function nodeToCharCode(node) {
@@ -446,6 +447,19 @@ function buildClassMatcher(entry) {
                 return ch === input;
             }
             break;
+
+        case 'characterClassRange':
+            var min = nodeToCharCode(entry.min);
+            var max = nodeToCharCode(entry.max);
+
+            if (max < min) {
+                // TODO: Better error message.
+                throw new Error('Character not in right order');
+            }
+            return function(input) {
+                var ch = input.charCodeAt(0);
+                return ch >= min && ch <= max;
+            }
 
         case 'empty':
             return function(input) { return true; }
