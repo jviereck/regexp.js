@@ -305,6 +305,10 @@ function bDot() {
     return bCharSet(true, '\n\r\u2028\u2029');
 }
 
+function bAny() {
+    return bCharSet(true, '');
+}
+
 function bAlt() {
     var altr = new Node(Node.ALTR);
     var join = new Node(Node.JOIN);
@@ -483,7 +487,7 @@ function exec(matchStr, regExpStr) {
     var nodes = bGroup(0, walk(parseTree));
 
     var startNode = bJoin(
-        bRepeat(false, 0, matchStr.length + 1, bDot()),
+        bRepeat(false, 0, matchStr.length + 1, bAny()),
         nodes//,
     )[0];
 
