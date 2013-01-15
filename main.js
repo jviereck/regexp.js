@@ -210,6 +210,9 @@ function match(state, node) {
                 node = node.next;
                 break;
 
+            default:
+                throw "Unkown node type: " + node.type;
+
         }
     }
 
@@ -457,6 +460,14 @@ function walk(node, inCharacterClass) {
 
         case 'empty':
             return bEmpty();
+
+        case 'special':
+            switch (node.name) {
+                case 'dot':
+                    return bDot();
+                default:
+                    new Error('Unsupported node special name: ' + node.name);
+            }
 
         default:
             throw new Error('Unsupported node type: ' + node.type);

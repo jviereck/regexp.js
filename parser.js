@@ -409,7 +409,7 @@ function parse(str) {
         }
         else if (match('.')) {
             //      .
-            return createSpecial('any');
+            return createSpecial('dot');
         }
         else if (match('\\')) {
             //      \ AtomEscape
