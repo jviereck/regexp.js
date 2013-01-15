@@ -398,7 +398,9 @@ function run() {
 
     assertEndState(exec('a', 'a+'), 1, ['a']);
     assertEndState(exec('da', '[cba]'), 2, ['a']);
-    assertEndState(exec('abc', 'a(?:b)c'), 3, ['abc']);
+    assertEndState(exec('abc', 'a(?:b)c'), 3, ['abc']); // Not remember
+    assertEndState(exec('abdabc', 'ab(?!d)'), 5, ['ab']); // Only if not followed by
+    assertEndState(exec('abdabc', 'ab(?=c)'), 5, ['ab']); // Only if not followed by
 }
 
 function buildClassMatcher(entry) {
