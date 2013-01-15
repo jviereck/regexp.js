@@ -135,9 +135,14 @@ function match(state, node) {
                     return false;
                 }
 
-                res = node.children.some(function(f) {
-                    return f(nextChar);
-                });
+                if (node.children.length !== 0) {
+                    res = node.children.some(function(f) {
+                        return f(nextChar);
+                    });
+                } else {
+                    res = true;
+                }
+
 
                 if (node.not) {
                     res = !res;
@@ -306,7 +311,7 @@ function bDot() {
 }
 
 function bAny() {
-    return bCharSet(true, '');
+    return bCharSet(false, '');
 }
 
 function bAlt() {
@@ -408,15 +413,42 @@ function run() {
     assertEndState(exec('abc', 'a(?:b)c'), 3, ['abc']); // Not remember
     assertEndState(exec('abdabc', 'ab(?!d)'), 5, ['ab']); // Only if not followed by
     assertEndState(exec('abdabc', 'ab(?=c)'), 5, ['ab']); // Only if not followed by
+    assertEndState(exec('a ', '\\u0020'), 2, [' ']);
+    assertEndState(exec('a ', '[\\u0020]'), 2, [' ']);
+}
+
+function nodeToCharCode(node) {
+    switch (node.type) {
+        case 'character':
+            return node.char.charCodeAt(0);
+
+        case 'unicodeEscape':
+            return parseInt(node.value, 16);
+    }
+
+    return null;
+}
+
+function nodeToChar(node) {
+    var code = nodeToCharCode(node);
+    if (code === null) {
+        return null;
+    }
+    return String.fromCharCode(code);
 }
 
 function buildClassMatcher(entry) {
     switch (entry.type) {
         case 'character':
+        case 'unicodeEscape':
+            var ch = nodeToChar(entry);
             return function(input) {
-                return entry.char === input;
+                return ch === input;
             }
             break;
+
+        case 'empty':
+            return function(input) { return true; }
 
         default:
             throw new Error('Unkown classRange entry type: ' + entry.type);
@@ -437,7 +469,8 @@ function walk(node, inCharacterClass) {
             return bJoin.apply(null, arr);
 
         case 'character':
-            return bText(node.char);
+        case 'unicodeEscape':
+            return bText(nodeToChar(node));
 
         case 'quantifier':
             return bRepeat(node.greedy, node.min, node.max, walk(node.child));

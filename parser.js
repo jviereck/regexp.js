@@ -403,13 +403,13 @@ function parse(str) {
 
         var res;
 
-        if (res = matchReg(/^[^^$\.*+?()[\]{}|]/)) {
+        if (res = matchReg(/^[^^$\\.*+?()[\]{}|]/)) {
             //      PatternCharacter
             return createCharacter(res);
         }
         else if (match('.')) {
             //      .
-            return createSpecial('dot');
+            return createSpecial('any');
         }
         else if (match('\\')) {
             //      \ AtomEscape

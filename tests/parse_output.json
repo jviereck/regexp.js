@@ -103,6 +103,30 @@
     "type": "alternative",
     "terms": [
       {
+        "type": "characterClass",
+        "classRanges": [
+          {
+            "type": "unicodeEscape",
+            "value": "0020"
+          }
+        ],
+        "negative": false
+      }
+    ]
+  },
+  {
+    "type": "alternative",
+    "terms": [
+      {
+        "type": "unicodeEscape",
+        "value": "0020"
+      }
+    ]
+  },
+  {
+    "type": "alternative",
+    "terms": [
+      {
         "type": "group",
         "behavior": "normal",
         "disjunction": {
