@@ -64,7 +64,9 @@
             "to": 2
           }
         ],
-        "negative": false
+        "negative": false,
+        "from": 0,
+        "to": 3
       }
     ],
     "from": 0,
@@ -89,7 +91,9 @@
             "to": 3
           }
         ],
-        "negative": false
+        "negative": false,
+        "from": 0,
+        "to": 4
       }
     ],
     "from": 0,
@@ -102,11 +106,16 @@
         "type": "characterClass",
         "classRanges": [
           {
-            "type": "identityEscape",
-            "char": "\\"
+            "type": "escape",
+            "name": "identifier",
+            "value": "\\",
+            "from": 2,
+            "to": 3
           }
         ],
-        "negative": false
+        "negative": false,
+        "from": 0,
+        "to": 4
       }
     ],
     "from": 0,
@@ -126,7 +135,9 @@
             "to": 6
           }
         ],
-        "negative": false
+        "negative": false,
+        "from": 0,
+        "to": 7
       }
     ],
     "from": 0,
@@ -146,7 +157,9 @@
             "to": 7
           }
         ],
-        "negative": false
+        "negative": false,
+        "from": 0,
+        "to": 8
       }
     ],
     "from": 0,

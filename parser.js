@@ -103,7 +103,9 @@ function parse(str) {
     function createAssertion(sub) {
         return {
             type: 'assertion',
-            sub:  sub
+            sub:  sub,
+            from: pos - 1,
+            to: pos
         };
     }
 
@@ -188,26 +190,23 @@ function parse(str) {
         };
     }
 
-    function createCharacterClass(classRanges, negative) {
+    function createCharacterClass(classRanges, negative, from, to) {
         return {
             type: 'characterClass',
             classRanges: classRanges,
-            negative: negative || false
+            negative: negative,
+            from: from,
+            to: to
         };
     }
 
-    function createClassRange(start, end) {
+    function createClassRange(min, max, from, to) {
         return {
             type: 'characterClassRange',
-            min: start,
-            max: end
-        };
-    }
-
-    function createIdentityEscape(char) {
-        return {
-            type: 'identityEscape',
-            char: char
+            min: min,
+            max: max,
+            from: from,
+            to: to
         };
     }
 
@@ -354,7 +353,7 @@ function parse(str) {
         } else if (match('$')) {
             return createAssertion('end');
         } else if ((res = matchReg(/^\\(b)/)) || (res = matchReg(/^\\(B)/))) {
-            return createEscaped('wordBoundary', res[1]);
+            return createEscaped('wordBoundary', res[1], 1);
         } else {
             return parseGroup('(?=', 'onlyIf', '(?!', 'onlyIfNot');
         }
@@ -551,15 +550,15 @@ function parse(str) {
         var res;
 
         if (!isIdentifierPart(lookahead())) {
-            return createIdentityEscape(incr());
+            return createEscaped('identifier', incr());
         }
 
         if (match(ZWJ)) {
         //      <ZWJ>
-            return createIdentityEscape(ZWJ)
+            return createEscaped('identifier', ZWJ);
         } else if (match(ZWNJ)) {
         //      <ZWNJ>
-            return createIdentityEscape(ZWNJ)
+            return createEscaped('identifier', ZWNJ);
         }
 
         return null;
@@ -570,15 +569,15 @@ function parse(str) {
         //      [ [lookahead ∉ {^}] ClassRanges ]
         //      [ ^ ClassRanges ]
 
-        var res;
+        var res, from = pos;
         if (res = matchReg(/^\[\^/)) {
             res = parseClassRanges();
             skip(']');
-            return createCharacterClass(res, true);
+            return createCharacterClass(res, true, from, pos);
         } else if (match('[')) {
             res = parseClassRanges();
             skip(']');
-            return createCharacterClass(res);
+            return createCharacterClass(res, false, from, pos);
         }
 
         return null;
@@ -602,6 +601,7 @@ function parse(str) {
     }
 
     function parseHelperClassRanges(atom) {
+        var from = pos, to;
         if (current('-') && !next(']')) {
         //      ClassAtom - ClassAtom ClassRanges
             skip('-');
@@ -610,11 +610,12 @@ function parse(str) {
             if (!res) {
                 throw expected('classAtom');
             }
+            to = pos;
             var classRanges = parseClassRanges();
             if (!classRanges) {
                 throw expected('classRanges');
             }
-            return [createClassRange(atom, res)].concat(classRanges);
+            return [createClassRange(atom, res, from, to)].concat(classRanges);
         }
 
         res = parseNonemptyClassRangesNoDash();
