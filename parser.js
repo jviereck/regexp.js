@@ -116,10 +116,12 @@ function parse(str) {
         };
     }
 
-    function createDisjunction(alternatives) {
+    function createDisjunction(alternatives, from, to) {
         return {
             type: 'disjunction',
-            alternatives: alternatives
+            alternatives: alternatives,
+            from: from,
+            to: to
         };
     }
 
@@ -261,7 +263,7 @@ function parse(str) {
         // Disjunction ::
         //      Alternative
         //      Alternative | Disjunction
-        var res = [];
+        var res = [], from = pos;
         res.push(parseAlternative());
 
         while (match('|')) {
@@ -272,7 +274,7 @@ function parse(str) {
             return res[0];
         }
 
-        return createDisjunction(res);
+        return createDisjunction(res, from, pos);
     }
 
     function parseAlternative() {
