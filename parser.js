@@ -207,14 +207,12 @@ function parse(str) {
         return obj.type === 'empty';
     }
 
-    var state = {
-        idx: 0
-    };
+    var pos = 0;
 
     function incr(amount) {
         amount = (amount || 1);
-        var res = str.substring(state.idx, state.idx + amount);
-        state.idx += (amount || 1);
+        var res = str.substring(pos, pos + amount);
+        pos += (amount || 1);
         return res;
     }
 
@@ -225,25 +223,25 @@ function parse(str) {
     }
 
     function match(value) {
-        if (str.indexOf(value, state.idx) === state.idx) {
+        if (str.indexOf(value, pos) === pos) {
             return incr(value.length);
         }
     }
 
     function lookahead() {
-        return str[state.idx];
+        return str[pos];
     }
 
     function current(value) {
-        return str[state.idx] === value;
+        return str[pos] === value;
     }
 
     function next(value) {
-        return str[state.idx + 1] === value;
+        return str[pos + 1] === value;
     }
 
     function matchReg(regExp) {
-        var subStr = str.substring(state.idx);
+        var subStr = str.substring(pos);
         var res = subStr.match(regExp);
         if (res) {
             incr(res[0].length);
