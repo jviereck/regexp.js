@@ -189,27 +189,39 @@
           "type": "alternative",
           "terms": [
             {
-              "type": "quantifier",
-              "min": 0,
-              "max": 1,
-              "greedy": true,
-              "child": {
-                "type": "character",
-                "char": ":",
-                "from": 1,
-                "to": 2
-              },
-              "from": 2,
-              "to": 3
-            },
+              "type": "character",
+              "char": "x",
+              "from": 1,
+              "to": 2
+            }
+          ],
+          "from": 1,
+          "to": 2
+        },
+        "from": 0,
+        "to": 3
+      }
+    ],
+    "from": 0,
+    "to": 3
+  },
+  {
+    "type": "alternative",
+    "terms": [
+      {
+        "type": "group",
+        "behavior": "ignore",
+        "disjunction": {
+          "type": "alternative",
+          "terms": [
             {
               "type": "character",
-              "char": "b",
+              "char": "x",
               "from": 3,
               "to": 4
             }
           ],
-          "from": 1,
+          "from": 3,
           "to": 4
         },
         "from": 0,
@@ -223,39 +235,67 @@
     "type": "alternative",
     "terms": [
       {
+        "type": "character",
+        "char": "x",
+        "from": 0,
+        "to": 1
+      },
+      {
         "type": "group",
-        "behavior": "normal",
+        "behavior": "onlyIf",
         "disjunction": {
           "type": "alternative",
           "terms": [
             {
-              "type": "quantifier",
-              "min": 0,
-              "max": 1,
-              "greedy": true,
-              "child": {
-                "type": "empty",
-                "from": 1,
-                "to": 1
-              },
-              "from": 1,
-              "to": 2
-            },
-            {
               "type": "character",
-              "char": "b",
-              "from": 2,
-              "to": 3
+              "char": "y",
+              "from": 4,
+              "to": 5
             }
           ],
-          "from": 1,
-          "to": 3
+          "from": 4,
+          "to": 5
         },
-        "from": 0,
-        "to": 4
+        "from": 1,
+        "to": 6
       }
     ],
     "from": 0,
-    "to": 4
+    "to": 6
+  },
+  {
+    "type": "alternative",
+    "terms": [
+      {
+        "type": "character",
+        "char": "x",
+        "from": 0,
+        "to": 1
+      },
+      {
+        "type": "group",
+        "behavior": "onlyIfNot",
+        "disjunction": {
+          "type": "alternative",
+          "terms": [
+            {
+              "type": "character",
+              "char": "y",
+              "from": 4,
+              "to": 5
+            }
+          ],
+          "from": 4,
+          "to": 5
+        },
+        "from": 1,
+        "to": 6
+      }
+    ],
+    "from": 0,
+    "to": 6
+  },
+  {
+    "error": "Could not parse entire input - got stuck."
   }
 ]

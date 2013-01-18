@@ -251,9 +251,9 @@ function parse(str) {
         var subStr = str.substring(pos);
         var res = subStr.match(regExp);
         if (res) {
-            // res.from = pos;
+            res.from = pos;
             incr(res[0].length);
-            // res.to = pos;
+            res.to = pos;
         }
         return res;
     }
@@ -310,7 +310,10 @@ function parse(str) {
             return assertion;
         }
 
-        var atom = parseAtom() || createEmpty();;
+        var atom = parseAtom();
+        if (!atom) {
+            return createEmpty();
+        }
         var quantifier = parseQuantifier() || false;
         if (quantifier) {
             quantifier.child = atom;
@@ -705,7 +708,21 @@ function parse(str) {
         return new Error('Expected: ' + str);
     }
 
-    return parseDisjunction();
+    try {
+        var result = parseDisjunction();
+    } catch(e) {
+        return {
+            error: e.message
+        };
+    }
+
+    if (result.to !== str.length) {
+        return {
+            error: 'Could not parse entire input - got stuck.'
+        };
+    }
+
+    return result;
 }
 
 if (typeof exports !== 'undefined') {
