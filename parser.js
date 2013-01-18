@@ -131,10 +131,11 @@ function parse(str) {
         };
     }
 
-    function createSpecial(name) {
+    function createDot(name) {
         return {
-            type: 'special',
-            name: name
+            type: 'dot',
+            from: pos - 1,
+            to: pos
         };
     }
 
@@ -424,7 +425,7 @@ function parse(str) {
         }
         else if (match('.')) {
             //      .
-            return createSpecial('any');
+            return createDot();
         }
         else if (match('\\')) {
             //      \ AtomEscape

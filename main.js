@@ -517,13 +517,8 @@ function walk(node, inCharacterClass) {
         case 'empty':
             return bEmpty();
 
-        case 'special':
-            switch (node.name) {
-                case 'dot':
-                    return bDot();
-                default:
-                    new Error('Unsupported node special name: ' + node.name);
-            }
+        case 'dot':
+            return bDot();
 
         default:
             throw new Error('Unsupported node type: ' + node.type);
