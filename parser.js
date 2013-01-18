@@ -110,7 +110,9 @@ function parse(str) {
     function createCharacter(matches) {
         return {
             type: 'character',
-            char: matches[0]
+            char: matches[0],
+            from: pos - 1,
+            to: pos
         };
     }
 
@@ -123,7 +125,9 @@ function parse(str) {
 
     function createEmpty() {
         return {
-            type: 'empty'
+            type: 'empty',
+            from: pos,
+            to: pos
         };
     }
 
@@ -134,49 +138,50 @@ function parse(str) {
         };
     }
 
-    function createEscapedDecimal(value) {
+    function createEscaped(name, value, fromOffset) {
+        fromOffset = fromOffset || 0;
         return {
-            type: 'escapedDecimalEscape',
-            value: value
+            type: 'escape',
+            name: name,
+            value: value,
+            from: pos - (value.length + fromOffset),
+            to: pos
         };
     }
 
-    function createHexEscape(matches) {
-        return {
-            type: 'hexEscape',
-            value: matches[1]
-        };
-    }
-
-    function createUnicodeEscape(matches) {
-        return {
-            type: 'unicodeEscape',
-            value: matches[1]
-        };
-    }
-
-    function createGroup(behavior, disjunction) {
+    function createGroup(behavior, disjunction, from, to) {
         return {
             type: 'group',
             behavior: behavior,
-            disjunction: disjunction
+            disjunction: disjunction,
+            from: from,
+            to: to
         };
     }
 
-    function createQuantifier(min, max) {
+    function createQuantifier(min, max, from, to) {
+        if (to == null) {
+            from = pos - 1;
+            to = pos;
+        }
+
         return {
             type: 'quantifier',
             min: min,
             max: max,
             greedy: true,
-            child: null // set later on
+            child: null, // set later on,
+            from: from,
+            to: to
         };
     }
 
-    function createAlternative(terms) {
+    function createAlternative(terms, from, to) {
         return {
             type: 'alternative',
-            terms: terms
+            terms: terms,
+            from: from,
+            to: to
         };
     }
 
@@ -244,7 +249,9 @@ function parse(str) {
         var subStr = str.substring(pos);
         var res = subStr.match(regExp);
         if (res) {
+            // res.from = pos;
             incr(res[0].length);
+            // res.to = pos;
         }
         return res;
     }
@@ -268,7 +275,7 @@ function parse(str) {
     }
 
     function parseAlternative() {
-        var res = [];
+        var res = [], from = pos;
 
         // Alternative ::
         //      [empty]
@@ -286,7 +293,7 @@ function parse(str) {
             res.push(term);
         }
 
-        return createAlternative(res);
+        return createAlternative(res, from, pos);
     }
 
     function parseTerm() {
@@ -310,6 +317,25 @@ function parse(str) {
         return atom;
     }
 
+    function parseGroup(matchA, typeA, matchB, typeB) {
+        var type = null, from = pos;
+
+        if (match(matchA)) {
+            type = typeA;
+        } else if (match(matchB)) {
+            type = typeB;
+        } else {
+            return false;
+        }
+
+        res = parseDisjunction();
+        if (!res) {
+            throw expected('disjunction');
+        }
+        skip(')');
+        return createGroup(type, res, from, pos);
+    }
+
     function parseAssertion() {
         // Assertion ::
         //      ^
@@ -318,21 +344,16 @@ function parse(str) {
         //      \ B
         //      ( ? = Disjunction )
         //      ( ? ! Disjunction )
-        var res;
+        var res, from = pos;
+
         if (match('^')) {
             return createAssertion('start');
         } else if (match('$')) {
             return createAssertion('end');
-        } else if ((res = matchReg(/^\\b/)) || (res = matchReg(/^\\B/))) {
-            return createSpecial(res[0]);
-        } else if (match('(?=')) {
-            res = createGroup('onlyIf', parseDisjunction());
-            skip(')');
-            return res;
-        } else if (match('(?!')) {
-            res = createGroup('onlyIfNot', parseDisjunction());
-            skip(')');
-            return res;
+        } else if ((res = matchReg(/^\\(b)/)) || (res = matchReg(/^\\(B)/))) {
+            return createEscaped('wordBoundary', res[1]);
+        } else {
+            return parseGroup('(?=', 'onlyIf', '(?!', 'onlyIfNot');
         }
     }
 
@@ -351,7 +372,7 @@ function parse(str) {
 
         var res;
         var quantifier;
-        var from, to;
+        var min, max;
 
         if (match('*')) {
             quantifier = createQuantifier(0);
@@ -363,22 +384,23 @@ function parse(str) {
             quantifier = createQuantifier(0, 1);
         }
         else if (res = matchReg(/^\{([0-9]+)\}/)) {
-            from = parseInt(res[1], 10);
-            quantifier = createQuantifier(from, from);
+            min = parseInt(res[1], 10);
+            quantifier = createQuantifier(min, min);
         }
         else if (res = matchReg(/^\{([0-9]+),\}/)) {
-            from = parseInt(res[1], 10);
-            quantifier = createQuantifier(from);
+            min = parseInt(res[1], 10);
+            quantifier = createQuantifier(min, undefined, res.from, res.to);
         }
         else if (res = matchReg(/^\{([0-9]+),([0-9]+)\}/)) {
-            from = parseInt(res[1], 10);
-            to = parseInt(res[2], 10);
-            quantifier = createQuantifier(from, to);
+            min = parseInt(res[1], 10);
+            max = parseInt(res[2], 10);
+            quantifier = createQuantifier(min, max, res.from, res.to);
         }
 
         if (quantifier) {
             if (match('?')) {
                 quantifier.greedy = false;
+                quantifier.to += 1;
             }
         }
 
@@ -415,21 +437,10 @@ function parse(str) {
         else if (res = parseCharacterClass()) {
             return res;
         }
-        else if (match('(?:')) {
-            res = parseDisjunction();
-            if (!res) {
-                throw expected('disjunction');
-            }
-            skip(')');
-            return createGroup('ignore', res);
-        }
-        else if (match('(')) {
-            res = parseDisjunction();
-            if (!res) {
-                throw expected('disjunction');
-            }
-            skip(')');
-            return createGroup('normal', res);
+        else {
+            //      ( Disjunction )
+            //      ( ? : Disjunction )
+            return parseGroup('(?:', 'ignore', '(', 'normal');
         }
     }
 
@@ -479,9 +490,9 @@ function parse(str) {
 
         var res;
         if (res = matchReg(/^[0-9]+/)) {
-            return createEscapedDecimal(res[0]);
+            return createEscaped('decimal', res[0]);
         } else if (res = matchReg(/^[dDsSwW]/)) {
-            return createSpecial(res[0]);
+            return createEscaped('decimal', res[0]);
         }
          return false;
     }
@@ -497,16 +508,16 @@ function parse(str) {
         var res;
         if (res = matchReg(/^[fnrtv]/)) {
         //      ControlEscape
-            return createSpecial(res[0]);
-        } else if (res = matchReg(/^c[a-zA-Z]/)) {
+            return createEscaped('control', res[0]);
+        } else if (res = matchReg(/^c([a-zA-Z])/)) {
         //      c ControlLetter
-            return createSpecial(res[0]);
+            return createEscaped('controlLetter', res[1], 1);
         } else if (res = matchReg(/^x([0-9a-fA-F]{2})/)) {
         //      HexEscapeSequence
-            return createHexEscape(res);
+            return createEscaped('hex', res[1], 1);
         } else  if (res = matchReg(/^u([0-9a-fA-F]{4})/)) {
         //      UnicodeEscapeSequence
-            return createUnicodeEscape(res);
+            return createEscaped('unicode', res[1], 1);
         } else {
         //      IdentityEscape
             return parseIdentityEscape();

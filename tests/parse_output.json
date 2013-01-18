@@ -4,9 +4,13 @@
     "terms": [
       {
         "type": "character",
-        "char": "a"
+        "char": "a",
+        "from": 0,
+        "to": 1
       }
-    ]
+    ],
+    "from": 0,
+    "to": 1
   },
   {
     "type": "disjunction",
@@ -16,22 +20,32 @@
         "terms": [
           {
             "type": "character",
-            "char": "a"
+            "char": "a",
+            "from": 0,
+            "to": 1
           }
-        ]
+        ],
+        "from": 0,
+        "to": 1
       },
       {
         "type": "alternative",
         "terms": [
           {
             "type": "character",
-            "char": "b"
+            "char": "b",
+            "from": 2,
+            "to": 3
           },
           {
             "type": "character",
-            "char": "c"
+            "char": "c",
+            "from": 3,
+            "to": 4
           }
-        ]
+        ],
+        "from": 2,
+        "to": 4
       }
     ]
   },
@@ -43,12 +57,16 @@
         "classRanges": [
           {
             "type": "character",
-            "char": "a"
+            "char": "a",
+            "from": 1,
+            "to": 2
           }
         ],
         "negative": false
       }
-    ]
+    ],
+    "from": 0,
+    "to": 3
   },
   {
     "type": "alternative",
@@ -58,16 +76,22 @@
         "classRanges": [
           {
             "type": "character",
-            "char": "a"
+            "char": "a",
+            "from": 1,
+            "to": 2
           },
           {
             "type": "character",
-            "char": "-"
+            "char": "-",
+            "from": 2,
+            "to": 3
           }
         ],
         "negative": false
       }
-    ]
+    ],
+    "from": 0,
+    "to": 4
   },
   {
     "type": "alternative",
@@ -82,7 +106,9 @@
         ],
         "negative": false
       }
-    ]
+    ],
+    "from": 0,
+    "to": 4
   },
   {
     "type": "alternative",
@@ -91,13 +117,18 @@
         "type": "characterClass",
         "classRanges": [
           {
-            "type": "escapedDecimalEscape",
-            "value": "0001"
+            "type": "escape",
+            "name": "decimal",
+            "value": "0001",
+            "from": 2,
+            "to": 6
           }
         ],
         "negative": false
       }
-    ]
+    ],
+    "from": 0,
+    "to": 7
   },
   {
     "type": "alternative",
@@ -106,22 +137,32 @@
         "type": "characterClass",
         "classRanges": [
           {
-            "type": "unicodeEscape",
-            "value": "0020"
+            "type": "escape",
+            "name": "unicode",
+            "value": "0020",
+            "from": 2,
+            "to": 7
           }
         ],
         "negative": false
       }
-    ]
+    ],
+    "from": 0,
+    "to": 8
   },
   {
     "type": "alternative",
     "terms": [
       {
-        "type": "unicodeEscape",
-        "value": "0020"
+        "type": "escape",
+        "name": "unicode",
+        "value": "0020",
+        "from": 1,
+        "to": 6
       }
-    ]
+    ],
+    "from": 0,
+    "to": 6
   },
   {
     "type": "alternative",
@@ -139,17 +180,29 @@
               "greedy": true,
               "child": {
                 "type": "character",
-                "char": ":"
-              }
+                "char": ":",
+                "from": 1,
+                "to": 2
+              },
+              "from": 2,
+              "to": 3
             },
             {
               "type": "character",
-              "char": "b"
+              "char": "b",
+              "from": 3,
+              "to": 4
             }
-          ]
-        }
+          ],
+          "from": 1,
+          "to": 4
+        },
+        "from": 0,
+        "to": 5
       }
-    ]
+    ],
+    "from": 0,
+    "to": 5
   },
   {
     "type": "alternative",
@@ -166,16 +219,28 @@
               "max": 1,
               "greedy": true,
               "child": {
-                "type": "empty"
-              }
+                "type": "empty",
+                "from": 1,
+                "to": 1
+              },
+              "from": 1,
+              "to": 2
             },
             {
               "type": "character",
-              "char": "b"
+              "char": "b",
+              "from": 2,
+              "to": 3
             }
-          ]
-        }
+          ],
+          "from": 1,
+          "to": 3
+        },
+        "from": 0,
+        "to": 4
       }
-    ]
+    ],
+    "from": 0,
+    "to": 4
   }
 ]

@@ -423,8 +423,13 @@ function nodeToCharCode(node) {
         case 'character':
             return node.char.charCodeAt(0);
 
-        case 'unicodeEscape':
-            return parseInt(node.value, 16);
+        case 'escape':
+            switch (node.name) {
+                case 'unicode':
+                    return parseInt(node.value, 16);
+                default:
+                    new Error('Unsupported node escape name: ' + node.name);
+            }
     }
 
     return null;
@@ -441,7 +446,7 @@ function nodeToChar(node) {
 function buildClassMatcher(entry) {
     switch (entry.type) {
         case 'character':
-        case 'unicodeEscape':
+        case 'escape':
             var ch = nodeToChar(entry);
             return function(input) {
                 return ch === input;
@@ -483,7 +488,7 @@ function walk(node, inCharacterClass) {
             return bJoin.apply(null, arr);
 
         case 'character':
-        case 'unicodeEscape':
+        case 'escape':
             return bText(nodeToChar(node));
 
         case 'quantifier':
