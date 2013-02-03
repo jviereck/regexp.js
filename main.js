@@ -49,7 +49,7 @@ Node.NOT_MATCH = 'NOT_MATCH';
 function State(str) {
     this.str = str;
     this.idx = 0;
-    this.matches = {};
+    this.matches = [];
     this.data = {};
     this.counts = {};
 }
@@ -372,7 +372,7 @@ function bEmpty() {
     return [node, node];
 }
 
-function run() {
+function runTests() {
     test('dabc', bJoin(
         bDot(),
         bGroup(
@@ -560,8 +560,9 @@ function exec(matchStr, regExpStr) {
     var endState = match(state, startNode);
 
     if (!endState) {
-        return null;
+        endState = {};
     }
+    endState.parseTree = parseTree;
     return endState;
 }
 

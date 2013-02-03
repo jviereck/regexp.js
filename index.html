@@ -6,15 +6,49 @@
 </head>
 
 <body>
-<textarea id="area">
 
-</textarea>
+<table width="500px">
+    <tr>
+        <td>RegExp:</td><td><input id="regexp" style="width:100%" value="(a)|(b)"></input></td>
+    </tr>
+    <tr>
+        <td>Input:</td><td><textarea id="area" rows=5 style="width:100%">a</textarea></td>
+    </tr>
+    </tr>
+        <td></td><td><button onclick="matchIt()" >Match</button></td>
+    </tr>
+    <tr>
+        <td>Result:</td><td><textarea id="result" rows=5 style="width:100%"></textarea></td>
+    </tr>
+    <tr>
+        <td>ParseTree:</td><td><textarea id="parseTree" rows=20 style="width:100%"></textarea></td>
+    </tr>
+</table>
 
 <script>
-var area = document.getElementById('area');
-area.value = localStorage['area'] || '';
+function matchIt() {
+    var regexp = document.getElementById('regexp').value;
+    var input = document.getElementById('area').value;
 
-run(area.value, '');
+    try {
+        var res = exec(input, regexp);
+    } catch (exp) {
+        alert('Sorry: ' + exp);
+        return;
+    }
+
+    var resOutput;
+    if (res.matches) {
+        resOutput = JSON.stringify(res.matches, null, 4);
+    } else {
+        resOutput = 'null';
+    }
+
+    document.getElementById('result').value = resOutput;
+    document.getElementById('parseTree').value = JSON.stringify(res.parseTree, null, 4);
+}
+
+runTests();
 
 </script>
 </html>
