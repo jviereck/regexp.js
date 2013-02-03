@@ -70,6 +70,10 @@ State.prototype.clone = function() {
     return clone(this);
 };
 
+State.prototype.resetMatch = function(idx) {
+    this.matches[idx] = undefined;
+}
+
 State.prototype.recordMatch = function(idx, from, to) {
     this.matches[idx] = this.str.substring(from, to);
 };
@@ -184,23 +188,28 @@ function match(state, node) {
                 break;
 
             case Node.GROUP_BEGIN:
-                state.set(node.data, state.idx);
+                state.set(node.matchIdx, state.idx);
+                if (node.lastMatchIdx != null && node.lastMatchIdx >= 0) {
+                    for (var i = node.matchIdx; i <= node.lastMatchIdx; i++) {
+                        state.resetMatch(i);
+                    }
+                }
 
                 node = node.next;
                 break;
 
             case Node.GROUP_END:
                 // If node.idx > 0, then it's a group to store the match.
-                if (node.data >= 0) {
-                    var beginState = state.get(node.data);
-                    state.recordMatch(node.data, beginState, state.idx);
+                if (node.matchIdx >= 0) {
+                    var beginState = state.get(node.matchIdx);
+                    state.recordMatch(node.matchIdx, beginState, state.idx);
                 }
 
                 // node.data === -1 // don't remember the match
 
                 // Case of: x(?=y)
-                if (node.data < -1) {
-                    state.idx = state.get(node.data);
+                if (node.matchIdx < -1) {
+                    state.idx = state.get(node.matchIdx);
                 }
 
                 node = node.next;
@@ -260,11 +269,16 @@ function bText(str) {
 
 // If group should be a not-remember-group like `(?:x)`, then set
 // `idx=0`.
-function bGroup(idx, children) {
+function bGroup(children, matchIdx, lastMatchIdx) {
+    if (lastMatchIdx === undefined) {
+        lastMatchIdx = matchIdx;
+    }
+
     var begin = new Node(Node.GROUP_BEGIN);
     var end = new Node(Node.GROUP_END);
 
-    begin.data = end.data = idx;
+    begin.matchIdx = end.matchIdx = matchIdx;
+    begin.lastMatchIdx = end.lastMatchIdx = lastMatchIdx;
 
     begin.next = children[0];
     children[1].next = end;
@@ -274,7 +288,7 @@ function bGroup(idx, children) {
 
 function bFollowMatch(children) {
     var id = idCounter++;
-    return bGroup(-id - 1, children);
+    return bGroup(children, -id - 1);
 }
 
 function bNotFollowMatch(children) {
@@ -362,11 +376,11 @@ function run() {
     test('dabc', bJoin(
         bDot(),
         bGroup(
-            1,
             bAlt(
                 bText(''),
                 bText('a')
-            )
+            ),
+            1
         ),
         bText('bc')
     ), 4, ['dabc', 'a']);
@@ -374,39 +388,39 @@ function run() {
     test('abab', bJoin(
         bRepeat(true, 0, 100, bDot()),
         bGroup(
-            1,
-            bText('b')
+            bText('b'),
+            1
         )
     ), 4, ['abab', 'b']);
 
     test('abab', bJoin(
         bRepeat(false, 0, 100, bDot()),
         bGroup(
-            1,
-            bText('b')
+            bText('b'),
+            1
         )
     ), 2, ['ab', 'b']);
 
     test('abcabd', bJoin(
         bGroup(
-            1,
-            bText('abd')
+            bText('abd'),
+            1
         )
     ), 6, ['abd', 'abd']);
 
-    test('abcabd', bGroup(1, bJoin(
+    test('abcabd', bGroup(bJoin(
         bText('b'),
         bFollowMatch(
             bText('d')
         )
-    )), 5, ['b', 'b']);
+    ), 1), 5, ['b', 'b']);
 
-    test('abcabd', bGroup(1, bJoin(
+    test('abcabd', bGroup(bJoin(
         bText('b'),
         bNotFollowMatch(
             bText('c')
         )
-    )), 5, ['b', 'b']);
+    ), 1), 5, ['b', 'b']);
 
     assertEndState(exec('a', 'a+'), 1, ['a']);
     assertEndState(exec('da', '[cba]'), 2, ['a']);
@@ -416,6 +430,8 @@ function run() {
     assertEndState(exec('a ', '\\u0020'), 2, [' ']);
     assertEndState(exec('a ', '[\\u0020]'), 2, [' ']);
     assertEndState(exec('d', '[a-z]'), 1, ['d']);
+    assertEndState(exec('a', '(a)|(b)'), 1, ['a', 'a', undefined]);
+    assertEndState(exec('b', '(a)|(b)'), 1, ['b', undefined, 'b']);
 }
 
 function nodeToCharCode(node) {
@@ -481,7 +497,7 @@ function walk(node, inCharacterClass) {
     switch (node.type) {
         case 'disjunction':
             arr = node.alternatives.map(walk);
-            return bAlt(arr);
+            return bAlt.apply(null, arr);
 
         case 'alternative':
             arr = node.terms.map(walk);
@@ -500,14 +516,16 @@ function walk(node, inCharacterClass) {
                 return bNotFollowMatch(res);
             } else {
                 var idx;
+                var endIdx;
                 if (node.behavior === 'onlyIf') {
                     idx = -2;
                 } else if (node.behavior === 'ignore') {
                     idx = -1;
                 } else {
-                    idx = groupCounter++;
+                    idx = node.matchIdx;
+                    endIdx = node.lastMatchIdx;
                 }
-                return bGroup(idx, res);
+                return bGroup(res, idx, endIdx);
             }
 
         case 'characterClass':
@@ -531,7 +549,7 @@ function exec(matchStr, regExpStr) {
     var parseTree = parse(regExpStr);
 
     groupCounter = 1;
-    var nodes = bGroup(0, walk(parseTree));
+    var nodes = bGroup(walk(parseTree), 0, parseTree.lastMatchIdx);
 
     var startNode = bJoin(
         bRepeat(false, 0, matchStr.length + 1, bAny()),
@@ -587,7 +605,7 @@ function test(str, nodes, lastIdx, matches) {
     // work also from not only the beginning
     var startNode = bJoin(
         bRepeat(false, 0, str.length + 1, bDot()),
-        bGroup(0, nodes)
+        bGroup(nodes, 0)
     )[0];
 
     var state = new State(str);
