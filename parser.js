@@ -100,6 +100,9 @@
 
 
 function parse(str) {
+    var pos = 0;
+    var lastMatchIdx = 0;
+
     function createAssertion(sub) {
         return {
             type: 'assertion',
@@ -152,6 +155,12 @@ function parse(str) {
             from: pos - (value.length + fromOffset),
             to: pos
         };
+    }
+
+    function createRef(ref) {
+        return {
+            type: 'ref'
+        }
     }
 
     function createGroup(behavior, disjunction, from, to) {
@@ -213,8 +222,6 @@ function parse(str) {
     function isEmpty(obj) {
         return obj.type === 'empty';
     }
-
-    var pos = 0;
 
     function incr(amount) {
         amount = (amount || 1);
@@ -333,12 +340,22 @@ function parse(str) {
             return false;
         }
 
+        var matchIdx;
+        if (type === 'normal') {
+            matchIdx = ++lastMatchIdx;
+        }
+
         res = parseDisjunction();
         if (!res) {
             throw expected('disjunction');
         }
         skip(')');
-        return createGroup(type, res, from, pos);
+        var group = createGroup(type, res, from, pos);
+        if (type == 'normal') {
+            group.matchIdx = matchIdx;
+            group.lastMatchIdx = lastMatchIdx;
+        }
+        return group;
     }
 
     function parseAssertion() {
@@ -494,8 +511,10 @@ function parse(str) {
         //      d D s S w W
 
         var res;
-        if (res = matchReg(/^[0-9]+/)) {
-            return createEscaped('decimal', res[0]);
+        if (match('0')) {
+            return createEscaped('null', '', 1);
+        } else if (res = matchReg(/^[0-9]+/)) {
+            return createRef(res[0]);
         } else if (res = matchReg(/^[dDsSwW]/)) {
             return createEscaped('decimal', res[0]);
         }
@@ -710,6 +729,7 @@ function parse(str) {
 
     try {
         var result = parseDisjunction();
+        result.lastMatchIdx = lastMatchIdx;
     } catch(e) {
         return {
             error: e.message
