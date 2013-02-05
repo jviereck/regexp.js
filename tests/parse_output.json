@@ -330,6 +330,32 @@
     "type": "alternative",
     "terms": [
       {
+        "type": "characterClass",
+        "classRanges": [
+          {
+            "type": "escape",
+            "name": "unicode",
+            "value": "0008",
+            "from": 1,
+            "to": 3
+          }
+        ],
+        "negative": false,
+        "from": 0,
+        "to": 4
+      }
+    ],
+    "from": 0,
+    "to": 4,
+    "lastMatchIdx": 0
+  },
+  {
+    "error": "SyntaxError: \\B not possible inside of CharacterClass"
+  },
+  {
+    "type": "alternative",
+    "terms": [
+      {
         "type": "escape",
         "name": "unicode",
         "value": "0020",

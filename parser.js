@@ -479,7 +479,7 @@ function parse(str) {
         return parseAtomEscape(true);
     }
 
-    function parseAtomEscape(includeB) {
+    function parseAtomEscape(insideCharacterClass) {
         // AtomEscape ::
         //      DecimalEscape
         //      CharacterEscape
@@ -493,9 +493,14 @@ function parse(str) {
         }
 
         // For ClassEscape
-        if (includeB) {
+        if (insideCharacterClass) {
             if (match('b')) {
-                return createSepcial('b');
+                // 15.10.2.19
+                // The production ClassEscape :: b evaluates by returning the
+                // CharSet containing the one character <BS> (Unicode value 0008).
+                return createEscaped('unicode', '0008', -2);
+            } else if (match('B')) {
+                throw syntaxError('\\B not possible inside of CharacterClass');
             }
         }
 
@@ -724,6 +729,10 @@ function parse(str) {
             }
             return res;
         }
+    }
+
+    function syntaxError(str) {
+        return new Error('SyntaxError: ' + str);
     }
 
     function expected(str) {
