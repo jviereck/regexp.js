@@ -59,6 +59,10 @@ State.prototype.incr = function() {
     this.idx += 1;
 };
 
+State.prototype.beginning = function() {
+    return this.idx === 0;
+}
+
 State.prototype.finished = function() {
     return this.idx >= this.str.length;
 };
@@ -661,6 +665,17 @@ function walk(node, inCharacterClass) {
 
         case 'dot':
             return bDot();
+
+        case 'assertion':
+            if (node.sub === 'start') {
+                return bFunc(function(state) {
+                    return state.beginning();
+                });
+            } else {
+                return bFunc(function(state) {
+                    return state.finished();
+                });
+            }
 
         default:
             throw new Error('Unsupported node type: ' + node.type);
