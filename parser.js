@@ -256,7 +256,7 @@ function parse(str) {
     }
 
     function current(value) {
-        return str[pos] === value;
+        return str.indexOf(value, pos) === pos;
     }
 
     function next(value) {
@@ -685,18 +685,21 @@ function parse(str) {
         //      ClassAtomNoDash - ClassAtom ClassRanges
 
         var res;
+        if (current('-]')) {
+            return parseClassAtom();
+        }
 
-        if (next(']') || current('\\')) {
-            res = parseClassAtom();
-            if (!res) {
-                throw expected('classAtom');
-            }
-            return res;
+        if (current('-')) {
+            throw expected('not a dash in nonemptyClassRangesNoDash');
         }
 
         res = parseClassAtomNoDash();
         if (!res) {
             throw expected('classAtomNoDash');
+        }
+
+        if (current(']')) {
+            return res;
         }
 
         //      ClassAtomNoDash NonemptyClassRangesNoDash
