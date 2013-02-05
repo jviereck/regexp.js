@@ -104,16 +104,9 @@ function match(state, node) {
         var nextChar = state.getCurrentChar();
 
         switch (node.type) {
-            case Node.BOUNDARY:
-                // See: 15.10.2.6
-                var a = state.isWordChar(-1);
-                var b = state.isWordChar(0);
-                res = (a === true && b === false) || (a === false && b === true);
-                if (node.not) {
-                    res = !res;
-                }
-                if (!res) {
-                    return false;
+            case Node.FUNC:
+                if (!node.func(state)) {
+                    return null;
                 }
                 node = node.next;
                 break;
@@ -346,9 +339,22 @@ function bDot() {
 }
 
 function bBoundary(isNegative) {
-    var nodeA = new Node(Node.BOUNDARY);
-    nodeA.not = isNegative;
-    return [nodeA, nodeA];
+    return bFunc(function(state) {
+        // See: 15.10.2.6
+        var a = state.isWordChar(-1);
+        var b = state.isWordChar(0);
+        res = (a === true && b === false) || (a === false && b === true);
+        if (isNegative) {
+            res = !res;
+        }
+        return res;
+    })
+}
+
+function bFunc(func) {
+    var node = new Node(Node.FUNC);
+    node.func = func;
+    return [node, node];
 }
 
 function buildNodeFromRegStr(str) {
