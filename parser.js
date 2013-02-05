@@ -381,8 +381,8 @@ function parse(str) {
             return createAssertion('start');
         } else if (match('$')) {
             return createAssertion('end');
-        } else if ((res = matchReg(/^\\(b)/)) || (res = matchReg(/^\\(B)/))) {
-            return createEscaped('wordBoundary', res[1], 1);
+        } else if (res = matchReg(/^\\(b|B)/)) {
+            return createEscapedChar(res[1]);
         } else {
             return parseGroup('(?=', 'onlyIf', '(?!', 'onlyIfNot');
         }

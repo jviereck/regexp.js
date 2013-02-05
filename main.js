@@ -39,6 +39,7 @@ Node.GROUP_BEGIN = 'GROUP_BEGIN';
 Node.GROUP_END = 'GROUP_END';
 Node.REPEAT = 'REPEAT';
 Node.NOT_MATCH = 'NOT_MATCH';
+Node.FUNC = 'FUNC';
 
 // node types:
 // - character
@@ -91,12 +92,32 @@ State.prototype.incCounts = function(idx) {
     return this.counts[idx] = oldValue + 1;
 };
 
+State.prototype.isWordChar = function(offset) {
+    var idx = this.idx + offset;
+    if (idx === -1 || idx === this.str.length) return false;
+    return /[a-zA-Z0-9_]/.test(this.str[idx]);
+}
+
 function match(state, node) {
     var res;
     while (node) {
         var nextChar = state.getCurrentChar();
 
         switch (node.type) {
+            case Node.BOUNDARY:
+                // See: 15.10.2.6
+                var a = state.isWordChar(-1);
+                var b = state.isWordChar(0);
+                res = (a === true && b === false) || (a === false && b === true);
+                if (node.not) {
+                    res = !res;
+                }
+                if (!res) {
+                    return false;
+                }
+                node = node.next;
+                break;
+
             case Node.REPEAT:
                 // TODO: Reset values of groups.
 
@@ -324,6 +345,12 @@ function bDot() {
     return bCharSet(true, '\n\r\u2028\u2029');
 }
 
+function bBoundary(isNegative) {
+    var nodeA = new Node(Node.BOUNDARY);
+    nodeA.not = isNegative;
+    return [nodeA, nodeA];
+}
+
 function buildNodeFromRegStr(str) {
     return walk(parse(str), false);
 }
@@ -377,7 +404,9 @@ var escapedChars = {
     'w': buildNodeFromRegStr('[A-Za-z0-9_]'),
     'W': buildNodeFromRegStr('[^A-Za-z0-9_]'),
     's': buildWhitespaceLineOrTerminator(false),
-    'S': buildWhitespaceLineOrTerminator(true)
+    'S': buildWhitespaceLineOrTerminator(true),
+    'b': bBoundary(false),
+    'B': bBoundary(true)
 }
 function bEscapedChar(value) {  // 15.10.2.12
     if (value in escapedChars) {
@@ -499,6 +528,13 @@ function runTests() {
     assertEndState(exec('foo bar', '\\s\\w*'), 7, [' bar']);
     assertEndState(exec('foo bar', '\\S\\w*'), 3, ['foo']);
 
+    // Boundary \b and \B tests.
+    assertEndState(exec('ab cd', '\\bab'), 2, ['ab']);
+    assertEndState(exec('ab cd', 'ab\\b'), 2, ['ab']);
+    assertEndState(exec('ab cd', '\\bcd'), 5, ['cd']);
+    assertEndState(exec('ab cd', 'cd\\b'), 5, ['cd']);
+    assertEndState(exec('hallo', '\\Blo'), 5, ['lo']);
+    assertEndState(exec('hal la', 'l\\B'), 5, ['l']);
 }
 
 function nodeToCharCode(node) {
