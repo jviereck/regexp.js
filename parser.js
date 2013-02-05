@@ -684,21 +684,12 @@ function parse(str) {
         //      ClassAtomNoDash NonemptyClassRangesNoDash
         //      ClassAtomNoDash - ClassAtom ClassRanges
 
-        var res;
-        if (current('-]')) {
-            return parseClassAtom();
-        }
-
-        if (current('-')) {
-            throw expected('not a dash in nonemptyClassRangesNoDash');
-        }
-
-        res = parseClassAtomNoDash();
+        var res = parseClassAtom();
         if (!res) {
-            throw expected('classAtomNoDash');
+            throw expected('classAtom');
         }
-
         if (current(']')) {
+            //      ClassAtom
             return res;
         }
 

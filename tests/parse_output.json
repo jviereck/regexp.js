@@ -296,6 +296,40 @@
     "type": "alternative",
     "terms": [
       {
+        "type": "characterClass",
+        "classRanges": [
+          {
+            "type": "character",
+            "char": " ",
+            "from": 1,
+            "to": 2
+          },
+          {
+            "type": "escapeChar",
+            "value": "f",
+            "from": 3,
+            "to": 4
+          },
+          {
+            "type": "escapeChar",
+            "value": "n",
+            "from": 5,
+            "to": 6
+          }
+        ],
+        "negative": false,
+        "from": 0,
+        "to": 7
+      }
+    ],
+    "from": 0,
+    "to": 7,
+    "lastMatchIdx": 0
+  },
+  {
+    "type": "alternative",
+    "terms": [
+      {
         "type": "escape",
         "name": "unicode",
         "value": "0020",

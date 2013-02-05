@@ -328,14 +328,58 @@ function buildNodeFromRegStr(str) {
     return walk(parse(str), false);
 }
 
-// Nodes for: \d, \D, \s, \S, \w, \W
+
+// TAKEN FROM ESPRIMA! BEGIN >>
+
+// 7.2 White Space
+
+function isWhiteSpace(ch) {
+    return (ch === 32) ||  // space
+        (ch === 9) ||      // tab
+        (ch === 0xB) ||
+        (ch === 0xC) ||
+        (ch === 0xA0) ||
+        (ch >= 0x1680 && '\u1680\u180E\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200A\u202F\u205F\u3000\uFEFF'.indexOf(String.fromCharCode(ch)) > 0);
+}
+
+// 7.3 Line Terminators
+
+function isLineTerminator(ch) {
+    return (ch === 10) || (ch === 13) || (ch === 0x2028) || (ch === 0x2029);
+}
+
+// TAKEN FROM ESPRIMA! << END
+
+function buildWhitespaceLineOrTerminator(negative) {
+    // The functions taken from esprima expect to get the charCode of the
+    // character. Therefore wrap the functions, such that the input string
+    // gets converted to an integer before calling the funciton.
+    function strToChar(func) {
+        return function(input) {
+            return func(input.charCodeAt(0));
+        }
+    }
+
+    return bCharacterClass(negative, [
+        strToChar(isWhiteSpace),
+        strToChar(isLineTerminator)
+    ]);
+}
+
 var escapedChars = {
+    't': buildNodeFromRegStr('\\u0009'),
+    'n': buildNodeFromRegStr('\\u000A'),
+    'v': buildNodeFromRegStr('\\u000B'),
+    'f': buildNodeFromRegStr('\\u000C'),
+    'r': buildNodeFromRegStr('\\u000D'),
     'd': buildNodeFromRegStr('[0-9]'),
     'D': buildNodeFromRegStr('[^0-9]'),
     'w': buildNodeFromRegStr('[A-Za-z0-9_]'),
-    'W': buildNodeFromRegStr('[^A-Za-z0-9_]')
+    'W': buildNodeFromRegStr('[^A-Za-z0-9_]'),
+    's': buildWhitespaceLineOrTerminator(false),
+    'S': buildWhitespaceLineOrTerminator(true)
 }
-function bEscapedChar(value) {
+function bEscapedChar(value) {  // 15.10.2.12
     if (value in escapedChars) {
         return escapedChars[value];
     } else {
@@ -452,6 +496,9 @@ function runTests() {
     assertEndState(exec('a', '(a)|(b)'), 1, ['a', 'a', undefined]);
     assertEndState(exec('b', '(a)|(b)'), 1, ['b', undefined, 'b']);
     assertEndState(exec('a', '\\w'), 1, ['a']);
+    assertEndState(exec('foo bar', '\\s\\w*'), 7, [' bar']);
+    assertEndState(exec('foo bar', '\\S\\w*'), 3, ['foo']);
+
 }
 
 function nodeToCharCode(node) {
@@ -504,6 +551,18 @@ function buildClassMatcher(entry) {
 
         case 'empty':
             return function(input) { return true; }
+
+        case 'escapeChar':
+            return function(input) {
+                // escapeChar are made up of RegExp again. Do the simpliest way
+                // possible ATM and test the escapeChar against the input string
+                // using the match function itself again ;)
+                // This is not a problem, as escapeChars don't have circular
+                // dependencies.
+                var state = new State(input);
+                var firstNode = bEscapedChar(entry.value)[0];
+                return !!match(state, firstNode);
+            }
 
         default:
             throw new Error('Unkown classRange entry type: ' + entry.type);
