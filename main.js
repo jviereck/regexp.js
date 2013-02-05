@@ -91,6 +91,14 @@ State.prototype.get = function(key) {
     return this.data[key];
 };
 
+State.prototype.matchString = function(str) {
+    var doMatch = this.str.indexOf(str, this.idx) === this.idx;
+    if (doMatch) {
+        this.idx += str.length;
+    }
+    return doMatch;
+};
+
 State.prototype.incCounts = function(idx) {
     var oldValue = this.counts[idx] === undefined ? -1 : this.counts[idx];
     return this.counts[idx] = oldValue + 1;
@@ -545,6 +553,10 @@ function runTests() {
     assertEndState(exec('ab cd', 'cd\\b'), 5, ['cd']);
     assertEndState(exec('hallo', '\\Blo'), 5, ['lo']);
     assertEndState(exec('hal la', 'l\\B'), 5, ['l']);
+
+    // Referencing
+    assertEndState(exec('abab', 'a(.)a\\1'), 4, ['abab', 'b']);
+
 }
 
 function nodeToCharCode(node) {
@@ -676,6 +688,15 @@ function walk(node, inCharacterClass) {
                     return state.finished();
                 });
             }
+
+        case 'ref':
+            return bFunc(function(state) {
+                var refMatch = state.matches[node.ref];
+                if (refMatch === undefined) {
+                    throw new Error('Accessing match that is not set.');
+                }
+                return state.matchString(refMatch);
+            })
 
         default:
             throw new Error('Unsupported node type: ' + node.type);

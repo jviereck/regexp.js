@@ -167,9 +167,11 @@ function parse(str) {
     }
 
     function createRef(ref) {
+        var ref = parseInt(ref, 10);
         return {
-            type: 'ref'
-        }
+            type: 'ref',
+            ref: ref
+        };
     }
 
     function createGroup(behavior, disjunction, from, to) {
