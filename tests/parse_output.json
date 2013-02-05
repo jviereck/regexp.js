@@ -307,13 +307,13 @@
           {
             "type": "escapeChar",
             "value": "f",
-            "from": 3,
+            "from": 2,
             "to": 4
           },
           {
             "type": "escapeChar",
             "value": "n",
-            "from": 5,
+            "from": 4,
             "to": 6
           }
         ],

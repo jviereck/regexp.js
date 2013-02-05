@@ -161,7 +161,7 @@ function parse(str) {
         return {
             type: 'escapeChar',
             value: value,
-            from: pos - 1,
+            from: pos - 2,
             to: pos
         };
     }
