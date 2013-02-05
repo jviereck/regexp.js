@@ -267,6 +267,35 @@
     "type": "alternative",
     "terms": [
       {
+        "type": "characterClass",
+        "classRanges": [
+          {
+            "type": "character",
+            "char": " ",
+            "from": 1,
+            "to": 2
+          },
+          {
+            "type": "escape",
+            "name": "unicode",
+            "value": "0020",
+            "from": 3,
+            "to": 8
+          }
+        ],
+        "negative": false,
+        "from": 0,
+        "to": 9
+      }
+    ],
+    "from": 0,
+    "to": 9,
+    "lastMatchIdx": 0
+  },
+  {
+    "type": "alternative",
+    "terms": [
+      {
         "type": "escape",
         "name": "unicode",
         "value": "0020",

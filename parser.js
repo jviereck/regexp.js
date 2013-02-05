@@ -541,7 +541,7 @@ function parse(str) {
         var res;
         if (res = matchReg(/^[fnrtv]/)) {
         //      ControlEscape
-            return createEscaped('control', res[0]);
+            return createEscapedChar(res[0]);
         } else if (res = matchReg(/^c([a-zA-Z])/)) {
         //      c ControlLetter
             return createEscaped('controlLetter', res[1], 1);
@@ -686,7 +686,7 @@ function parse(str) {
 
         var res;
 
-        if (next(']')) {
+        if (next(']') || current('\\')) {
             res = parseClassAtom();
             if (!res) {
                 throw expected('classAtom');
