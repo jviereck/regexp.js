@@ -324,6 +324,25 @@ function bDot() {
     return bCharSet(true, '\n\r\u2028\u2029');
 }
 
+function buildNodeFromRegStr(str) {
+    return walk(parse(str), false);
+}
+
+// Nodes for: \d, \D, \s, \S, \w, \W
+var escapedChars = {
+    'd': buildNodeFromRegStr('[0-9]'),
+    'D': buildNodeFromRegStr('[^0-9]'),
+    'w': buildNodeFromRegStr('[A-Za-z0-9_]'),
+    'W': buildNodeFromRegStr('[^A-Za-z0-9_]')
+}
+function bEscapedChar(value) {
+    if (value in escapedChars) {
+        return escapedChars[value];
+    } else {
+        throw new Error('Unkown escaped char: ' + value);
+    }
+}
+
 function bAny() {
     return bCharSet(false, '');
 }
@@ -432,6 +451,7 @@ function runTests() {
     assertEndState(exec('d', '[a-z]'), 1, ['d']);
     assertEndState(exec('a', '(a)|(b)'), 1, ['a', 'a', undefined]);
     assertEndState(exec('b', '(a)|(b)'), 1, ['b', undefined, 'b']);
+    assertEndState(exec('a', '\\w'), 1, ['a']);
 }
 
 function nodeToCharCode(node) {
@@ -444,7 +464,7 @@ function nodeToCharCode(node) {
                 case 'unicode':
                     return parseInt(node.value, 16);
                 default:
-                    new Error('Unsupported node escape name: ' + node.name);
+                    throw new Error('Unsupported node escape name: ' + node.name);
             }
     }
 
@@ -506,6 +526,9 @@ function walk(node, inCharacterClass) {
         case 'character':
         case 'escape':
             return bText(nodeToChar(node));
+
+        case 'escapeChar':
+            return bEscapedChar(node.value);
 
         case 'quantifier':
             return bRepeat(node.greedy, node.min, node.max, walk(node.child));

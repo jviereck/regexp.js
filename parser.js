@@ -157,6 +157,15 @@ function parse(str) {
         };
     }
 
+    function createEscapedChar(value) {
+        return {
+            type: 'escapeChar',
+            value: value,
+            from: pos - 1,
+            to: pos
+        };
+    }
+
     function createRef(ref) {
         return {
             type: 'ref'
@@ -516,7 +525,7 @@ function parse(str) {
         } else if (res = matchReg(/^[0-9]+/)) {
             return createRef(res[0]);
         } else if (res = matchReg(/^[dDsSwW]/)) {
-            return createEscaped('decimal', res[0]);
+            return createEscapedChar(res[0]);
         }
          return false;
     }
@@ -623,7 +632,7 @@ function parse(str) {
     }
 
     function parseHelperClassRanges(atom) {
-        var from = pos, to;
+        var from = pos, to, res;
         if (current('-') && !next(']')) {
         //      ClassAtom - ClassAtom ClassRanges
             skip('-');

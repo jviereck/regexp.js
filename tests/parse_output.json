@@ -110,6 +110,79 @@
         "type": "characterClass",
         "classRanges": [
           {
+            "type": "characterClassRange",
+            "min": {
+              "type": "character",
+              "char": "A",
+              "from": 1,
+              "to": 2
+            },
+            "max": {
+              "type": "character",
+              "char": "Z",
+              "from": 3,
+              "to": 4
+            },
+            "from": 2,
+            "to": 4
+          },
+          {
+            "type": "characterClassRange",
+            "min": {
+              "type": "character",
+              "char": "a",
+              "from": 4,
+              "to": 5
+            },
+            "max": {
+              "type": "character",
+              "char": "z",
+              "from": 6,
+              "to": 7
+            },
+            "from": 5,
+            "to": 7
+          },
+          {
+            "type": "characterClassRange",
+            "min": {
+              "type": "character",
+              "char": "0",
+              "from": 7,
+              "to": 8
+            },
+            "max": {
+              "type": "character",
+              "char": "9",
+              "from": 9,
+              "to": 10
+            },
+            "from": 8,
+            "to": 10
+          },
+          {
+            "type": "character",
+            "char": "_",
+            "from": 10,
+            "to": 11
+          }
+        ],
+        "negative": false,
+        "from": 0,
+        "to": 12
+      }
+    ],
+    "from": 0,
+    "to": 12,
+    "lastMatchIdx": 0
+  },
+  {
+    "type": "alternative",
+    "terms": [
+      {
+        "type": "characterClass",
+        "classRanges": [
+          {
             "type": "escape",
             "name": "identifier",
             "value": "\\",
