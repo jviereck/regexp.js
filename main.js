@@ -41,18 +41,58 @@ Node.REPEAT = 'REPEAT';
 Node.NOT_MATCH = 'NOT_MATCH';
 Node.FUNC = 'FUNC';
 
-// node types:
-// - character
-// - group
-// - repeat
-// - lookback
+function Trace(parent) {
+    this.children = [];
+    this.parent = parent || null;
+    this.finalTrace = false;
+    this.items = [];
+}
 
-function State(str) {
+Trace.prototype = {
+    createChild: function() {
+        var child = new Trace(this);
+        this.children.push(child);
+        return child;
+    },
+
+    isFinalTrace: function() {
+        return this.finalTrace || this.children.some(function(child) {
+            return child.isFinalTrace();
+        });
+    },
+
+    record: function(node, title) {
+        var from, to, parseEntry = node.parseEntry;
+        if (parseEntry) {
+            from = parseEntry.from;
+            to = parseEntry.to;
+        }
+        this.items.push({
+            node: node,
+            title: title,
+            from: from,
+            to: to,
+            comments: []
+        });
+    },
+
+    comment: function(node, comment) {
+        var last = this.items[this.items.length - 1];
+        last.comments.push({
+            node: node,
+            comment: comment
+        });
+    }
+}
+
+function State(str, regExpStr) {
     this.str = str;
+    this.regExpStr = regExpStr;
     this.idx = 0;
     this.matches = [];
-    this.data = {};
+    this.data = {}; // TODO: Is this used anymore?
     this.counts = {};
+    this.trace = new Trace(null);
 }
 
 State.prototype.incr = function() {
@@ -72,7 +112,13 @@ State.prototype.getCurrentChar = function() {
 };
 
 State.prototype.clone = function() {
-    return clone(this);
+    var cloned = new State(this.str, this.regExpStr);
+    cloned.idx = this.idx;
+    cloned.matches = clone(this.matches);
+    cloned.counts = clone(this.counts);
+    cloned.data = clone(this.data);
+    cloned.trace = this.trace.createChild();
+    return cloned;
 };
 
 State.prototype.resetMatch = function(idx) {
@@ -110,16 +156,34 @@ State.prototype.isWordChar = function(offset) {
     return /[a-zA-Z0-9_]/.test(this.str[idx]);
 }
 
+// Things to record a trace on the state.
+State.prototype.try = function(node) {
+    var comment = '';
+    var parseEntry = node.parseEntry;
+    if (parseEntry) {
+        comment = 'Execute ' + this.regExpStr.substring(parseEntry.from, parseEntry.to)
+    }
+    this.trace.record(node, comment)
+}
+State.prototype.comment = function(node, comment) {
+    this.trace.comment(node, comment);
+}
+State.prototype.fail = function() { return false; }
+State.prototype.success = function() { return true; }
+
 function match(state, node) {
     var res;
     while (node) {
         var nextChar = state.getCurrentChar();
 
+        state.try(node);
+
         switch (node.type) {
             case Node.FUNC:
                 if (!node.func(state)) {
-                    return null;
+                    return state.fail();
                 }
+                state.success();
                 node = node.next;
                 break;
 
@@ -133,11 +197,12 @@ function match(state, node) {
                 // StateCounters start at -1 -> first inc makes the counter
                 // be zero.
                 var counter = state.incCounts(node.id);
-                if (counter < node.from) {
+                if (counter < node.min) {
+                    state.comment(node, 'Need to repeat another time');
                     // Haven't matched the minimum number yet
                     // -> match one more time.
-                    res = match(state.clone(), node.child);
-                } else if (counter === node.to) {
+                    res = match(state, node.child);
+                } else if (counter === node.max) {
                     // Have matched the maximum number
                     // -> nothing to change.
                     res = state;
@@ -148,7 +213,7 @@ function match(state, node) {
                         if (!res) {
                             res = match(state.clone(), node.next);
                             if (!res) {
-                                return false;
+                                return state.fail();
                             }
                         }
                     } else {
@@ -196,11 +261,13 @@ function match(state, node) {
                     state.incr();
                     node = node.next;
                 } else {
+                    state.fail();
                     return false;
                 }
                 break;
             case Node.ALTR:
                 for (var i = 0; i < node.children.length; i++) {
+                    state.try(node)
                     res = match(state.clone(), node.children[i]);
                     if (res) {
                         return res;
@@ -462,13 +529,13 @@ function bJoin() {
 }
 
 
-function bRepeat(greedy, from, to, children) {
+function bRepeat(greedy, min, max, children) {
     var node = new Node(Node.REPEAT);
 
     node.id = idCounter++;
     node.greedy = greedy;
-    node.from = from;
-    node.to = to;
+    node.min = min;
+    node.max = max;
 
     // Create a loop.
     node.child = children[0];
@@ -634,26 +701,31 @@ function walk(node, inCharacterClass) {
     switch (node.type) {
         case 'disjunction':
             arr = node.alternatives.map(walk);
-            return bAlt.apply(null, arr);
+            res = bAlt.apply(null, arr);
+            break;
 
         case 'alternative':
             arr = node.terms.map(walk);
-            return bJoin.apply(null, arr);
+            res = bJoin.apply(null, arr);
+            break;
 
         case 'character':
         case 'escape':
-            return bText(nodeToChar(node));
+            res = bText(nodeToChar(node));
+            break;
 
         case 'escapeChar':
-            return bEscapedChar(node.value);
+            res = bEscapedChar(node.value);
+            break;
 
         case 'quantifier':
-            return bRepeat(node.greedy, node.min, node.max, walk(node.child));
+            res = bRepeat(node.greedy, node.min, node.max, walk(node.child));
+            break;
 
         case 'group':
             res = walk(node.disjunction);
             if (node.behavior === 'onlyIfNot') {
-                return bNotFollowMatch(res);
+                res = bNotFollowMatch(res);
             } else {
                 var idx;
                 var endIdx;
@@ -665,42 +737,51 @@ function walk(node, inCharacterClass) {
                     idx = node.matchIdx;
                     endIdx = node.lastMatchIdx;
                 }
-                return bGroup(res, idx, endIdx);
+                res = bGroup(res, idx, endIdx);
             }
+            break;
 
         case 'characterClass':
             var matcher = node.classRanges.map(buildClassMatcher);
-            return bCharacterClass(node.negative, matcher);
+            res = bCharacterClass(node.negative, matcher);
+            break;
 
         case 'empty':
-            return bEmpty();
+            res = bEmpty();
+            break;
 
         case 'dot':
-            return bDot();
+            res = bDot();
+            break;
 
         case 'assertion':
             if (node.sub === 'start') {
-                return bFunc(function(state) {
+                res = bFunc(function(state) {
                     return state.beginning();
                 });
             } else {
-                return bFunc(function(state) {
+                res = bFunc(function(state) {
                     return state.finished();
                 });
             }
+            break;
 
         case 'ref':
-            return bFunc(function(state) {
+            res = bFunc(function(state) {
                 var refMatch = state.matches[node.ref];
                 if (refMatch === undefined) {
                     throw new Error('Accessing match that is not set.');
                 }
+                state.comment(null, 'referenced value: ' + refMatch);
                 return state.matchString(refMatch);
-            })
+            });
+            break;
 
         default:
             throw new Error('Unsupported node type: ' + node.type);
     }
+    res[0].parseEntry = node;
+    return res;
 }
 
 function exec(matchStr, regExpStr) {
@@ -716,7 +797,7 @@ function exec(matchStr, regExpStr) {
         nodes//,
     )[0];
 
-    var state = new State(matchStr);
+    var state = new State(matchStr, regExpStr);
     var endState = match(state, startNode);
 
     if (!endState) {
@@ -769,7 +850,7 @@ function test(str, nodes, lastIdx, matches) {
         bGroup(nodes, 0)
     )[0];
 
-    var state = new State(str);
+    var state = new State(str, '');
     var endState = match(state, startNode);
 
     assertEndState(endState, lastIdx, matches);

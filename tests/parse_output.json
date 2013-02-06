@@ -494,5 +494,51 @@
   },
   {
     "error": "Could not parse entire input - got stuck."
+  },
+  {
+    "type": "alternative",
+    "terms": [
+      {
+        "type": "character",
+        "char": "a",
+        "from": 0,
+        "to": 1
+      },
+      {
+        "type": "group",
+        "behavior": "normal",
+        "disjunction": {
+          "type": "alternative",
+          "terms": [
+            {
+              "type": "dot",
+              "from": 2,
+              "to": 3
+            }
+          ],
+          "from": 2,
+          "to": 3
+        },
+        "from": 1,
+        "to": 4,
+        "matchIdx": 1,
+        "lastMatchIdx": 1
+      },
+      {
+        "type": "character",
+        "char": "a",
+        "from": 4,
+        "to": 5
+      },
+      {
+        "type": "ref",
+        "ref": 1,
+        "from": 5,
+        "to": 7
+      }
+    ],
+    "from": 0,
+    "to": 7,
+    "lastMatchIdx": 1
   }
 ]

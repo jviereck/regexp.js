@@ -92,13 +92,6 @@
 //      CharacterEscape
 //      CharacterClassEscape
 
-
-// Uncertain stuff?
-//
-// - what does "backreference in classRanges mean?"
-//      'ab'.match(/(a)[\1]/)
-
-
 function parse(str) {
     var pos = 0;
     var lastMatchIdx = 0;
@@ -167,10 +160,11 @@ function parse(str) {
     }
 
     function createRef(ref) {
-        var ref = parseInt(ref, 10);
         return {
             type: 'ref',
-            ref: ref
+            ref: parseInt(ref, 10),
+            from: pos - 1 - ref.length,
+            to: pos
         };
     }
 
@@ -185,7 +179,7 @@ function parse(str) {
     }
 
     function createQuantifier(min, max, from, to) {
-        if (to == null) {
+        if (to === null) {
             from = pos - 1;
             to = pos;
         }
