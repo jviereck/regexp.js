@@ -41,22 +41,23 @@ Node.REPEAT = 'REPEAT';
 Node.NOT_MATCH = 'NOT_MATCH';
 Node.FUNC = 'FUNC';
 
-function Trace(parent) {
-    this.children = [];
+function Trace(parent, title) {
     this.parent = parent || null;
     this.finalTrace = false;
-    this.items = [];
+    this.lastItem = null;
+    this.children = [];
+    this.title = title || 'UNKOWN';
 }
 
 Trace.prototype = {
-    createChild: function() {
-        var child = new Trace(this);
-        this.children.push(child);
+    createChild: function(title) {
+        var child = new Trace(this, title);
+        this.lastItem.children.push(child);
         return child;
     },
 
     isFinalTrace: function() {
-        return this.finalTrace || this.children.some(function(child) {
+        return this.finalTrace || this.lastItem.children.some(function(child) {
             return child.isFinalTrace();
         });
     },
@@ -67,32 +68,32 @@ Trace.prototype = {
             from = parseEntry.from;
             to = parseEntry.to;
         }
-        this.items.push({
+        this.lastItem = {
             node: node,
             title: title,
             from: from,
             to: to,
-            comments: []
-        });
+            children: []
+        };
+        this.children.push(this.lastItem);
     },
 
     comment: function(node, comment) {
-        var last = this.items[this.items.length - 1];
-        last.comments.push({
+        this.lastItem.children.push({
             node: node,
-            comment: comment
+            title: comment
         });
     }
 }
 
-function State(str, regExpStr) {
+function State(str, regExpStr, trace) {
     this.str = str;
     this.regExpStr = regExpStr;
     this.idx = 0;
     this.matches = [];
     this.data = {}; // TODO: Is this used anymore?
     this.counts = {};
-    this.trace = new Trace(null);
+    this.trace = trace || new Trace(null);
 }
 
 State.prototype.incr = function() {
@@ -111,13 +112,25 @@ State.prototype.getCurrentChar = function() {
     return this.str[this.idx];
 };
 
-State.prototype.clone = function() {
-    var cloned = new State(this.str, this.regExpStr);
+State.prototype.nodeToString = function(node) {
+    var parseEntry = node.parseEntry;
+    if (parseEntry != null && this.regExpStr != null) {
+        return this.regExpStr.substring(parseEntry.from, parseEntry.to);
+    } else {
+        return 'UNSPECIFIED';
+    }
+}
+
+State.prototype.clone = function(node) {
+    var cloned = new State(
+        this.str,
+        this.regExpStr,
+        this.trace.createChild('Try: ' + this.nodeToString(node))
+    );
     cloned.idx = this.idx;
     cloned.matches = clone(this.matches);
     cloned.counts = clone(this.counts);
     cloned.data = clone(this.data);
-    cloned.trace = this.trace.createChild();
     return cloned;
 };
 
@@ -158,10 +171,13 @@ State.prototype.isWordChar = function(offset) {
 
 // Things to record a trace on the state.
 State.prototype.try = function(node) {
+    if (node.type === Node.JOIN) return;
     var comment = '';
     var parseEntry = node.parseEntry;
     if (parseEntry) {
         comment = 'Execute ' + this.regExpStr.substring(parseEntry.from, parseEntry.to)
+    } else {
+        comment = node.type;
     }
     this.trace.record(node, comment)
 }
@@ -172,6 +188,10 @@ State.prototype.fail = function() { return false; }
 State.prototype.success = function() { return true; }
 
 function match(state, node) {
+    function fork(node) {
+        return match(state.clone(node), node);
+    }
+
     var res;
     while (node) {
         var nextChar = state.getCurrentChar();
@@ -209,17 +229,17 @@ function match(state, node) {
                 } else {
                     // match \in {from, to}
                     if (node.greedy) {
-                        res = match(state.clone(), node.child);
+                        res = fork(node.child);
                         if (!res) {
-                            res = match(state.clone(), node.next);
+                            res = fork(node.next);
                             if (!res) {
                                 return state.fail();
                             }
                         }
                     } else {
-                        res = match(state.clone(), node.next);
+                        res = fork(node.next);
                         if (!res) {
-                            res = match(state.clone(), node.child);
+                            res = fork(node.child);
                         }
                     }
                 }
@@ -267,8 +287,7 @@ function match(state, node) {
                 break;
             case Node.ALTR:
                 for (var i = 0; i < node.children.length; i++) {
-                    state.try(node)
-                    res = match(state.clone(), node.children[i]);
+                    res = fork(node.children[i]);
                     if (res) {
                         return res;
                     }
@@ -310,7 +329,7 @@ function match(state, node) {
 
             case Node.NOT_MATCH:
                 // Case of: x(?!y)
-                res = match(state.clone(), node.child);
+                res = fork(node.child);
                 if (res) {
                     return false;
                 }
@@ -797,8 +816,10 @@ function exec(matchStr, regExpStr) {
         nodes//,
     )[0];
 
-    var state = new State(matchStr, regExpStr);
+    var trace = new Trace(null);
+    var state = new State(matchStr, regExpStr, trace);
     var endState = match(state, startNode);
+    endState.trace = trace;
 
     if (!endState) {
         endState = {};
@@ -850,7 +871,7 @@ function test(str, nodes, lastIdx, matches) {
         bGroup(nodes, 0)
     )[0];
 
-    var state = new State(str, '');
+    var state = new State(str, '', new Trace(null));
     var endState = match(state, startNode);
 
     assertEndState(endState, lastIdx, matches);

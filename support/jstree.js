@@ -3543,7 +3543,7 @@ Some static functions and variables, unless you know exactly what you are doing 
 				if(node.data && !$.isEmptyObject(node.data)) { li.data(node.data); }
 				if(
 					node.children === true ||
-					$.isArray(node.children) ||
+					($.isArray(node.children) && node.children.length !== 0) ||
 					(li.data('jstree') && $.isArray(li.data('jstree').children))
 				) {
 					if(!li.data('jstree')) {
@@ -3553,7 +3553,7 @@ Some static functions and variables, unless you know exactly what you are doing 
 				}
 				li.append(a);
 				if($.isArray(node.children) &&
-					node.children.length !== 0
+					node.children.length !== 0 // Don't show empty children.
 				) {
 					$.each(node.children, $.proxy(function (i, n) {
 						ul.append(this.parse_json(n));
