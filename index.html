@@ -46,6 +46,7 @@ $("#selector").jstree({
 });
 
 var ref = jQuery.jstree._reference("#selector")
+var treeRoot;
 
 function matchIt() {
     var regexp = document.getElementById('regexp').value;
@@ -63,7 +64,10 @@ function matchIt() {
     if (res.matches) {
         resOutput = JSON.stringify(res.matches, null, 4);
 
-        ref.create_node(-1, res.trace, 'before');
+        if (treeRoot) {
+            ref.delete_node(treeRoot);
+        }
+        treeRoot = ref.create_node(-1, res.trace, 'before');
         ref.open_all();
     } else {
         resOutput = 'null';
@@ -75,7 +79,9 @@ function matchIt() {
 
 runTests();
 
-
+window.onload = function() {
+    matchIt();
+}
 
 </script>
 </html>

@@ -1,6 +1,7 @@
 // Whole-script strict mode syntax
 "use strict";
 
+// (\w+).*?(\w+) --- foo: abc
 
 // Cool debugger written in Perl.
 // perl -E "use Regexp::Debugger; 'ababc' =~ / (a|b) b+ c /x"
@@ -76,6 +77,12 @@ Trace.prototype = {
             children: []
         };
         this.children.push(this.lastItem);
+    },
+
+    fail: function() {
+        this.children.push({
+            title: 'FAIL TO MATCH'
+        });
     },
 
     comment: function(node, comment) {
@@ -175,16 +182,34 @@ State.prototype.try = function(node) {
     var comment = '';
     var parseEntry = node.parseEntry;
     if (parseEntry) {
-        comment = 'Execute ' + this.regExpStr.substring(parseEntry.from, parseEntry.to)
+        var commentLabel = '';
+        switch (node.type) {
+            case Node.GROUP_BEGIN:
+                commentLabel = 'ENTER_GROUP';
+                break;
+            case Node.GROUP_END:
+                commentLabel = 'LEAVE_GROUP';
+                break;
+            default:
+                commentLabel = 'Execute';
+                break;
+        }
+        comment = commentLabel + ': ' + this.regExpStr.substring(parseEntry.from, parseEntry.to)
     } else {
         comment = node.type;
     }
     this.trace.record(node, comment)
-}
+};
+
 State.prototype.comment = function(node, comment) {
     this.trace.comment(node, comment);
-}
-State.prototype.fail = function() { return false; }
+};
+
+State.prototype.fail = function() {
+    this.trace.fail();
+    return false;
+};
+
 State.prototype.success = function() { return true; }
 
 function match(state, node) {
@@ -800,6 +825,9 @@ function walk(node, inCharacterClass) {
             throw new Error('Unsupported node type: ' + node.type);
     }
     res[0].parseEntry = node;
+    if (res[1].type === Node.GROUP_END) {
+        res[1].parseEntry = node;
+    }
     return res;
 }
 
