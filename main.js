@@ -1,15 +1,12 @@
 // Whole-script strict mode syntax
 "use strict";
 
-// (\w+).*?(\w+) --- foo: abc
-
 // Cool debugger written in Perl.
 // perl -E "use Regexp::Debugger; 'ababc' =~ / (a|b) b+ c /x"
 
-function Node(type, from, to) {
+function Node(type) {
+    this.id = idCounter++;
     this.type = type;
-    this.from = from;
-    this.to = to;
 }
 
 Node.prototype.patch = function (nextA, nextB) {
@@ -254,19 +251,21 @@ function match(state, node) {
                 } else {
                     // match \in {from, to}
                     if (node.greedy) {
+                        // 15.10.2.5: Greedy - repeat child as many times as possible.
                         res = fork(node.child);
                         if (!res) {
-                            res = fork(node.next);
-                            if (!res) {
-                                return state.fail();
-                            }
+                            res = match(state, node.next);
                         }
                     } else {
+                        // 15.10.2.5: non-greedy - repeat child as less times as possible.
                         res = fork(node.next);
                         if (!res) {
-                            res = fork(node.child);
+                            res = match(state, node.child);
                         }
                     }
+                }
+                if (!res) {
+                    return state.fail();
                 }
                 return res;
 
@@ -292,6 +291,7 @@ function match(state, node) {
                     state.incr();
                     node = node.next;
                 } else {
+                    state.fail();
                     return false;
                 }
                 break;
@@ -523,23 +523,26 @@ function buildWhitespaceLineOrTerminator(negative) {
 }
 
 var escapedChars = {
-    't': buildNodeFromRegStr('\\u0009'),
-    'n': buildNodeFromRegStr('\\u000A'),
-    'v': buildNodeFromRegStr('\\u000B'),
-    'f': buildNodeFromRegStr('\\u000C'),
-    'r': buildNodeFromRegStr('\\u000D'),
-    'd': buildNodeFromRegStr('[0-9]'),
-    'D': buildNodeFromRegStr('[^0-9]'),
-    'w': buildNodeFromRegStr('[A-Za-z0-9_]'),
-    'W': buildNodeFromRegStr('[^A-Za-z0-9_]'),
-    's': buildWhitespaceLineOrTerminator(false),
-    'S': buildWhitespaceLineOrTerminator(true),
-    'b': bBoundary(false),
-    'B': bBoundary(true)
+    // The build functions are wrapped in a function to create a fresh node
+    // for every escapedChar. Otherwise setting the `next` property on a
+    // node used at multiple places fails.
+    't': function() { return buildNodeFromRegStr('\\u0009'); },
+    'n': function() { return buildNodeFromRegStr('\\u000A'); },
+    'v': function() { return buildNodeFromRegStr('\\u000B'); },
+    'f': function() { return buildNodeFromRegStr('\\u000C'); },
+    'r': function() { return buildNodeFromRegStr('\\u000D'); },
+    'd': function() { return buildNodeFromRegStr('[0-9]'); },
+    'D': function() { return buildNodeFromRegStr('[^0-9]'); },
+    'w': function() { return buildNodeFromRegStr('[A-Za-z0-9_]'); },
+    'W': function() { return buildNodeFromRegStr('[^A-Za-z0-9_]'); },
+    's': function() { return buildWhitespaceLineOrTerminator(false); },
+    'S': function() { return buildWhitespaceLineOrTerminator(true); },
+    'b': function() { return bBoundary(false); },
+    'B': function() { return bBoundary(true) }
 }
 function bEscapedChar(value) {  // 15.10.2.12
     if (value in escapedChars) {
-        return escapedChars[value];
+        return escapedChars[value]();
     } else {
         throw new Error('Unkown escaped char: ' + value);
     }
@@ -576,7 +579,6 @@ function bJoin() {
 function bRepeat(greedy, min, max, children) {
     var node = new Node(Node.REPEAT);
 
-    node.id = idCounter++;
     node.greedy = greedy;
     node.min = min;
     node.max = max;
@@ -665,8 +667,11 @@ function runTests() {
     assertEndState(exec('hallo', '\\Blo'), 5, ['lo']);
     assertEndState(exec('hal la', 'l\\B'), 5, ['l']);
 
+    assertEndState(exec('foo: bar', '(\\w+).*?(\\w+)'), 8, ['foo: bar', 'foo', 'bar']);
+
     // Referencing
     assertEndState(exec('abab', 'a(.)a\\1'), 4, ['abab', 'b']);
+
 
 }
 
@@ -783,6 +788,8 @@ function walk(node, inCharacterClass) {
                 }
                 res = bGroup(res, idx, endIdx);
             }
+
+            res[1].parseEntry = node;
             break;
 
         case 'characterClass':
@@ -825,9 +832,6 @@ function walk(node, inCharacterClass) {
             throw new Error('Unsupported node type: ' + node.type);
     }
     res[0].parseEntry = node;
-    if (res[1].type === Node.GROUP_END) {
-        res[1].parseEntry = node;
-    }
     return res;
 }
 
@@ -836,6 +840,7 @@ function exec(matchStr, regExpStr) {
 
     var parseTree = parse(regExpStr);
 
+    idCounter = 0;
     groupCounter = 1;
     var nodes = bGroup(walk(parseTree), 0, parseTree.lastMatchIdx);
 
@@ -862,7 +867,7 @@ function assertEndState(endState, lastIdx, matches) {
     }
 
     function pass() {
-        console.log('PASSED TEST');
+        // console.log('PASSED TEST');
     }
 
     if (endState) {
