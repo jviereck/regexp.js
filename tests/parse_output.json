@@ -6,11 +6,13 @@
         "type": "character",
         "char": "a",
         "from": 0,
-        "to": 1
+        "to": 1,
+        "bit": "a"
       }
     ],
     "from": 0,
     "to": 1,
+    "bit": "a",
     "lastMatchIdx": 0
   },
   {
@@ -23,11 +25,13 @@
             "type": "character",
             "char": "a",
             "from": 0,
-            "to": 1
+            "to": 1,
+            "bit": "a"
           }
         ],
         "from": 0,
-        "to": 1
+        "to": 1,
+        "bit": "a"
       },
       {
         "type": "alternative",
@@ -36,21 +40,25 @@
             "type": "character",
             "char": "b",
             "from": 2,
-            "to": 3
+            "to": 3,
+            "bit": "b"
           },
           {
             "type": "character",
             "char": "c",
             "from": 3,
-            "to": 4
+            "to": 4,
+            "bit": "c"
           }
         ],
         "from": 2,
-        "to": 4
+        "to": 4,
+        "bit": "bc"
       }
     ],
     "from": 0,
     "to": 4,
+    "bit": "a|bc",
     "lastMatchIdx": 0
   },
   {
@@ -63,16 +71,19 @@
             "type": "character",
             "char": "a",
             "from": 1,
-            "to": 2
+            "to": 2,
+            "bit": "a"
           }
         ],
         "negative": false,
         "from": 0,
-        "to": 3
+        "to": 3,
+        "bit": "[a]"
       }
     ],
     "from": 0,
     "to": 3,
+    "bit": "[a]",
     "lastMatchIdx": 0
   },
   {
@@ -85,22 +96,26 @@
             "type": "character",
             "char": "a",
             "from": 1,
-            "to": 2
+            "to": 2,
+            "bit": "a"
           },
           {
             "type": "character",
             "char": "-",
             "from": 2,
-            "to": 3
+            "to": 3,
+            "bit": "-"
           }
         ],
         "negative": false,
         "from": 0,
-        "to": 4
+        "to": 4,
+        "bit": "[a-]"
       }
     ],
     "from": 0,
     "to": 4,
+    "bit": "[a-]",
     "lastMatchIdx": 0
   },
   {
@@ -115,16 +130,19 @@
               "type": "character",
               "char": "A",
               "from": 1,
-              "to": 2
+              "to": 2,
+              "bit": "A"
             },
             "max": {
               "type": "character",
               "char": "Z",
               "from": 3,
-              "to": 4
+              "to": 4,
+              "bit": "Z"
             },
             "from": 2,
-            "to": 4
+            "to": 4,
+            "bit": "-Z"
           },
           {
             "type": "characterClassRange",
@@ -132,16 +150,19 @@
               "type": "character",
               "char": "a",
               "from": 4,
-              "to": 5
+              "to": 5,
+              "bit": "a"
             },
             "max": {
               "type": "character",
               "char": "z",
               "from": 6,
-              "to": 7
+              "to": 7,
+              "bit": "z"
             },
             "from": 5,
-            "to": 7
+            "to": 7,
+            "bit": "-z"
           },
           {
             "type": "characterClassRange",
@@ -149,31 +170,37 @@
               "type": "character",
               "char": "0",
               "from": 7,
-              "to": 8
+              "to": 8,
+              "bit": "0"
             },
             "max": {
               "type": "character",
               "char": "9",
               "from": 9,
-              "to": 10
+              "to": 10,
+              "bit": "9"
             },
             "from": 8,
-            "to": 10
+            "to": 10,
+            "bit": "-9"
           },
           {
             "type": "character",
             "char": "_",
             "from": 10,
-            "to": 11
+            "to": 11,
+            "bit": "_"
           }
         ],
         "negative": false,
         "from": 0,
-        "to": 12
+        "to": 12,
+        "bit": "[A-Za-z0-9_]"
       }
     ],
     "from": 0,
     "to": 12,
+    "bit": "[A-Za-z0-9_]",
     "lastMatchIdx": 0
   },
   {
@@ -187,16 +214,19 @@
             "name": "identifier",
             "value": "\\",
             "from": 2,
-            "to": 3
+            "to": 3,
+            "bit": "\\"
           }
         ],
         "negative": false,
         "from": 0,
-        "to": 4
+        "to": 4,
+        "bit": "[\\\\]"
       }
     ],
     "from": 0,
     "to": 4,
+    "bit": "[\\\\]",
     "lastMatchIdx": 0
   },
   {
@@ -210,34 +240,40 @@
             "name": "null",
             "value": "",
             "from": 2,
-            "to": 3
+            "to": 3,
+            "bit": "0"
           },
           {
             "type": "character",
             "char": "0",
             "from": 3,
-            "to": 4
+            "to": 4,
+            "bit": "0"
           },
           {
             "type": "character",
             "char": "0",
             "from": 4,
-            "to": 5
+            "to": 5,
+            "bit": "0"
           },
           {
             "type": "character",
             "char": "1",
             "from": 5,
-            "to": 6
+            "to": 6,
+            "bit": "1"
           }
         ],
         "negative": false,
         "from": 0,
-        "to": 7
+        "to": 7,
+        "bit": "[\\0001]"
       }
     ],
     "from": 0,
     "to": 7,
+    "bit": "[\\0001]",
     "lastMatchIdx": 0
   },
   {
@@ -251,16 +287,19 @@
             "name": "unicode",
             "value": "0020",
             "from": 2,
-            "to": 7
+            "to": 7,
+            "bit": "u0020"
           }
         ],
         "negative": false,
         "from": 0,
-        "to": 8
+        "to": 8,
+        "bit": "[\\u0020]"
       }
     ],
     "from": 0,
     "to": 8,
+    "bit": "[\\u0020]",
     "lastMatchIdx": 0
   },
   {
@@ -273,23 +312,27 @@
             "type": "character",
             "char": " ",
             "from": 1,
-            "to": 2
+            "to": 2,
+            "bit": " "
           },
           {
             "type": "escape",
             "name": "unicode",
             "value": "0020",
             "from": 3,
-            "to": 8
+            "to": 8,
+            "bit": "u0020"
           }
         ],
         "negative": false,
         "from": 0,
-        "to": 9
+        "to": 9,
+        "bit": "[ \\u0020]"
       }
     ],
     "from": 0,
     "to": 9,
+    "bit": "[ \\u0020]",
     "lastMatchIdx": 0
   },
   {
@@ -302,28 +345,33 @@
             "type": "character",
             "char": " ",
             "from": 1,
-            "to": 2
+            "to": 2,
+            "bit": " "
           },
           {
             "type": "escapeChar",
             "value": "f",
             "from": 2,
-            "to": 4
+            "to": 4,
+            "bit": "\\f"
           },
           {
             "type": "escapeChar",
             "value": "n",
             "from": 4,
-            "to": 6
+            "to": 6,
+            "bit": "\\n"
           }
         ],
         "negative": false,
         "from": 0,
-        "to": 7
+        "to": 7,
+        "bit": "[ \\f\\n]"
       }
     ],
     "from": 0,
     "to": 7,
+    "bit": "[ \\f\\n]",
     "lastMatchIdx": 0
   },
   {
@@ -337,16 +385,19 @@
             "name": "unicode",
             "value": "0008",
             "from": 1,
-            "to": 3
+            "to": 3,
+            "bit": "\\b"
           }
         ],
         "negative": false,
         "from": 0,
-        "to": 4
+        "to": 4,
+        "bit": "[\\b]"
       }
     ],
     "from": 0,
     "to": 4,
+    "bit": "[\\b]",
     "lastMatchIdx": 0
   },
   {
@@ -360,11 +411,13 @@
         "name": "unicode",
         "value": "0020",
         "from": 1,
-        "to": 6
+        "to": 6,
+        "bit": "u0020"
       }
     ],
     "from": 0,
     "to": 6,
+    "bit": "\\u0020",
     "lastMatchIdx": 0
   },
   {
@@ -380,20 +433,24 @@
               "type": "character",
               "char": "x",
               "from": 1,
-              "to": 2
+              "to": 2,
+              "bit": "x"
             }
           ],
           "from": 1,
-          "to": 2
+          "to": 2,
+          "bit": "x"
         },
         "from": 0,
         "to": 3,
+        "bit": "(x)",
         "matchIdx": 1,
         "lastMatchIdx": 1
       }
     ],
     "from": 0,
     "to": 3,
+    "bit": "(x)",
     "lastMatchIdx": 1
   },
   {
@@ -409,18 +466,22 @@
               "type": "character",
               "char": "x",
               "from": 3,
-              "to": 4
+              "to": 4,
+              "bit": "x"
             }
           ],
           "from": 3,
-          "to": 4
+          "to": 4,
+          "bit": "x"
         },
         "from": 0,
-        "to": 5
+        "to": 5,
+        "bit": "(?:x)"
       }
     ],
     "from": 0,
     "to": 5,
+    "bit": "(?:x)",
     "lastMatchIdx": 0
   },
   {
@@ -430,7 +491,8 @@
         "type": "character",
         "char": "x",
         "from": 0,
-        "to": 1
+        "to": 1,
+        "bit": "x"
       },
       {
         "type": "group",
@@ -442,18 +504,22 @@
               "type": "character",
               "char": "y",
               "from": 4,
-              "to": 5
+              "to": 5,
+              "bit": "y"
             }
           ],
           "from": 4,
-          "to": 5
+          "to": 5,
+          "bit": "y"
         },
         "from": 1,
-        "to": 6
+        "to": 6,
+        "bit": "(?=y)"
       }
     ],
     "from": 0,
     "to": 6,
+    "bit": "x(?=y)",
     "lastMatchIdx": 0
   },
   {
@@ -463,7 +529,8 @@
         "type": "character",
         "char": "x",
         "from": 0,
-        "to": 1
+        "to": 1,
+        "bit": "x"
       },
       {
         "type": "group",
@@ -475,18 +542,22 @@
               "type": "character",
               "char": "y",
               "from": 4,
-              "to": 5
+              "to": 5,
+              "bit": "y"
             }
           ],
           "from": 4,
-          "to": 5
+          "to": 5,
+          "bit": "y"
         },
         "from": 1,
-        "to": 6
+        "to": 6,
+        "bit": "(?!y)"
       }
     ],
     "from": 0,
     "to": 6,
+    "bit": "x(?!y)",
     "lastMatchIdx": 0
   },
   {
@@ -502,7 +573,8 @@
         "type": "character",
         "char": "a",
         "from": 0,
-        "to": 1
+        "to": 1,
+        "bit": "a"
       },
       {
         "type": "group",
@@ -513,14 +585,17 @@
             {
               "type": "dot",
               "from": 2,
-              "to": 3
+              "to": 3,
+              "bit": "."
             }
           ],
           "from": 2,
-          "to": 3
+          "to": 3,
+          "bit": "."
         },
         "from": 1,
         "to": 4,
+        "bit": "(.)",
         "matchIdx": 1,
         "lastMatchIdx": 1
       },
@@ -528,17 +603,20 @@
         "type": "character",
         "char": "a",
         "from": 4,
-        "to": 5
+        "to": 5,
+        "bit": "a"
       },
       {
         "type": "ref",
         "ref": 1,
         "from": 5,
-        "to": 7
+        "to": 7,
+        "bit": "\\1"
       }
     ],
     "from": 0,
     "to": 7,
+    "bit": "a(.)a\\1",
     "lastMatchIdx": 1
   }
 ]

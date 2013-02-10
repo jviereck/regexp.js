@@ -96,86 +96,91 @@ function parse(str) {
     var pos = 0;
     var lastMatchIdx = 0;
 
+    function addBit(node) {
+        node.bit = str.substring(node.from, node.to);
+        return node;
+    }
+
     function createAssertion(sub) {
-        return {
+        return addBit({
             type: 'assertion',
             sub:  sub,
             from: pos - 1,
             to: pos
-        };
+        });
     }
 
     function createCharacter(matches) {
-        return {
+        return addBit({
             type: 'character',
             char: matches[0],
             from: pos - 1,
             to: pos
-        };
+        });
     }
 
     function createDisjunction(alternatives, from, to) {
-        return {
+        return addBit({
             type: 'disjunction',
             alternatives: alternatives,
             from: from,
             to: to
-        };
+        });
     }
 
     function createEmpty() {
-        return {
+        return addBit({
             type: 'empty',
             from: pos,
             to: pos
-        };
+        });
     }
 
     function createDot(name) {
-        return {
+        return addBit({
             type: 'dot',
             from: pos - 1,
             to: pos
-        };
+        });
     }
 
     function createEscaped(name, value, fromOffset) {
         fromOffset = fromOffset || 0;
-        return {
+        return addBit({
             type: 'escape',
             name: name,
             value: value,
             from: pos - (value.length + fromOffset),
             to: pos
-        };
+        });
     }
 
     function createEscapedChar(value) {
-        return {
+        return addBit({
             type: 'escapeChar',
             value: value,
             from: pos - 2,
             to: pos
-        };
+        });
     }
 
     function createRef(ref) {
-        return {
+        return addBit({
             type: 'ref',
             ref: parseInt(ref, 10),
             from: pos - 1 - ref.length,
             to: pos
-        };
+        });
     }
 
     function createGroup(behavior, disjunction, from, to) {
-        return {
+        return addBit({
             type: 'group',
             behavior: behavior,
             disjunction: disjunction,
             from: from,
             to: to
-        };
+        });
     }
 
     function createQuantifier(min, max, from, to) {
@@ -184,7 +189,7 @@ function parse(str) {
             to = pos;
         }
 
-        return {
+        return addBit({
             type: 'quantifier',
             min: min,
             max: max,
@@ -192,36 +197,36 @@ function parse(str) {
             child: null, // set later on,
             from: from,
             to: to
-        };
+        });
     }
 
     function createAlternative(terms, from, to) {
-        return {
+        return addBit({
             type: 'alternative',
             terms: terms,
             from: from,
             to: to
-        };
+        });
     }
 
     function createCharacterClass(classRanges, negative, from, to) {
-        return {
+        return addBit({
             type: 'characterClass',
             classRanges: classRanges,
             negative: negative,
             from: from,
             to: to
-        };
+        });
     }
 
     function createClassRange(min, max, from, to) {
-        return {
+        return addBit({
             type: 'characterClassRange',
             min: min,
             max: max,
             from: from,
             to: to
-        };
+        });
     }
 
     function isEmpty(obj) {
