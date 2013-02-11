@@ -8,13 +8,19 @@
     <script src="support/jstree.js"></script>
     <script src="support/jstree.ui.js"></script>
     <script src="support/jstree.hotkeys.js"></script>
+
+    <style>
+        span.highlight {
+            background-color: orange;
+        }
+    </style>
 </head>
 
 <body>
 
 <table width="500px">
     <tr>
-        <td>RegExp:</td><td><input id="regexp" style="width:100%" value="\w*.*\w"></input></td>
+        <td>RegExp:</td><td><input id="regexp" style="width:100%" value="\w*.*\w"></input><span style="display:hidden" id="regexpRenderer"></span></td>
     </tr>
     <tr>
         <td>Input:</td><td><textarea id="area" rows=5 style="width:100%">foo: bar</textarea></td>
@@ -30,13 +36,19 @@
     </tr>
 </table>
 
-<div id="selector">
+<div id="selector" style="overflow: scroll;height:300px">
 </div>
 
 <script>
 $.jstree.THEMES_DIR = 'support/themes/';
 
-$("#selector").jstree({
+var treeContainer = '#selector';
+var regExpDom = document.getElementById('regexp');
+var regexpRendererDom = document.getElementById('regexpRenderer');
+
+var inputDom = document.getElementById('area');
+
+$(treeContainer).jstree({
     "themes" : {
         "theme" : "default",
         "dots" : true,
@@ -45,15 +57,57 @@ $("#selector").jstree({
     "plugins" : [ "themes", "html_data","ui", "hotkeys" ]
 });
 
-var ref = jQuery.jstree._reference("#selector")
+var ref = jQuery.jstree._reference(treeContainer)
 var treeRoot;
+var lastRes = null;
+var currentTrace = null;
+
+function renderRegExpDom(from, to) {
+    var regexp = regExpDom.value;
+    var html = regexp.substring(0, from) + '<span class="highlight">' + regexp.substring(from, to) + '</span>' + regexp.substring(to);
+    regexpRendererDom.innerHTML = html;
+}
+
+function reflectTreeSelection() {
+    var ui = ref.data.ui;
+    // Get the data used to create the hovered or if no hoverd node present
+    // the current selected node.
+    var traceId = (ui.hovered || ui.selected)[0].getAttribute('data-trace-id');
+    var trace = lastRes.trace.traceHash[traceId];
+
+    var selection;
+    var pos;
+    currentTrace = trace;
+    if (!trace || !trace.node || !trace.node.parseEntry) {
+        selection = { from: 0, to: 0 };
+    } else {
+        selection = trace.node.parseEntry;
+    }
+    if (trace) {
+        pos = { from: trace.pos, to: trace.pos + 1 };
+    } else {
+        pos = { from: 0, to: 0 };
+    }
+
+    renderRegExpDom(selection.from, selection.to);
+
+    inputDom.selectionStart = pos.from;
+    inputDom.selectionEnd = pos.to;
+}
+
+$(treeContainer).bind("hover_node.jstree", reflectTreeSelection);
+$(treeContainer).bind("select_node.jstree", reflectTreeSelection);
 
 function matchIt() {
-    var regexp = document.getElementById('regexp').value;
-    var input = document.getElementById('area').value;
+    regExpDom.style.display = 'none';
+    regexpRendererDom.style.display = 'block';
+    renderRegExpDom(0, 0);
+
+    var regexp = regExpDom.value;
+    var input = inputDom.value;
 
     try {
-        var res = window.res = exec(input, regexp);
+        var res = window.res = lastRes = exec(input, regexp);
     } catch (exp) {
         alert('Sorry: ' + exp);
         return;

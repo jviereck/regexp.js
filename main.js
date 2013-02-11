@@ -4,6 +4,8 @@
 // Cool debugger written in Perl.
 // perl -E "use Regexp::Debugger; 'ababc' =~ / (a|b) b+ c /x"
 
+var idCounter = 0;
+
 function Node(type) {
     this.id = idCounter++;
     this.type = type;
@@ -39,15 +41,29 @@ Node.REPEAT = 'REPEAT';
 Node.NOT_MATCH = 'NOT_MATCH';
 Node.FUNC = 'FUNC';
 
+var idCounterTrace = 0;
 function Trace(parent, title) {
+    if (!parent) {
+        this.traceHash = {};
+    } else {
+        this.traceHash = parent.traceHash;
+    }
+
     this.parent = parent || null;
     this.finalTrace = false;
     this.lastItem = null;
     this.children = [];
     this.title = title || 'UNKOWN';
+    this.addToTraceHash(this);
 }
 
 Trace.prototype = {
+    addToTraceHash: function(item) {
+        var id = item.id = idCounterTrace++;
+        item.li_attr = { "data-trace-id": id };
+        this.traceHash[id] = item;
+    },
+
     createChild: function(title) {
         var child = new Trace(this, title);
         this.lastItem.children.push(child);
@@ -60,19 +76,21 @@ Trace.prototype = {
         });
     },
 
-    record: function(node, title) {
+    record: function(pos, node, title) {
         var from, to, parseEntry = node.parseEntry;
         if (parseEntry) {
             from = parseEntry.from;
             to = parseEntry.to;
         }
         this.lastItem = {
+            pos: pos,
             node: node,
             title: title,
             from: from,
             to: to,
             children: []
         };
+        this.addToTraceHash(this.lastItem);
         this.children.push(this.lastItem);
     },
 
@@ -82,8 +100,9 @@ Trace.prototype = {
         });
     },
 
-    comment: function(node, comment) {
+    comment: function(pos, node, comment) {
         this.lastItem.children.push({
+            pos: pos,
             node: node,
             title: comment
         });
@@ -195,15 +214,15 @@ State.prototype.try = function(node) {
     } else {
         comment = node.type;
     }
-    this.trace.record(node, comment)
+    this.trace.record(this.idx, node, comment)
 };
 
 State.prototype.comment = function(node, comment) {
-    this.trace.comment(node, comment);
+    this.trace.comment(this.idx, node, comment);
 };
 
 State.prototype.fail = function() {
-    this.trace.fail();
+    this.trace.fail(this.idx);
     return false;
 };
 
@@ -373,8 +392,6 @@ function match(state, node) {
 
     return state;
 }
-
-var idCounter = 0;
 
 function retArr(nodes) {
     return [nodes[0], nodes[nodes.length - 1]];
@@ -546,10 +563,6 @@ function bEscapedChar(value) {  // 15.10.2.12
     } else {
         throw new Error('Unkown escaped char: ' + value);
     }
-}
-
-function bAny() {
-    return bCharSet(false, '');
 }
 
 function bAlt() {
@@ -755,8 +768,9 @@ function walk(node, inCharacterClass) {
 
         case 'alternative':
             arr = node.terms.map(walk);
-            res = bJoin.apply(null, arr);
-            break;
+            // Return here directly and don't finish the funciton. This way
+            // the parseEntry of the `alternative` is not set.
+            return  bJoin.apply(null, arr);
 
         case 'character':
         case 'escape':
@@ -845,7 +859,7 @@ function exec(matchStr, regExpStr) {
     var nodes = bGroup(walk(parseTree), 0, parseTree.lastMatchIdx);
 
     var startNode = bJoin(
-        bRepeat(false, 0, matchStr.length + 1, bAny()),
+        bRepeat(false, 0, matchStr.length + 1, bDot()),
         nodes//,
     )[0];
 

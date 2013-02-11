@@ -1,5 +1,21 @@
-
-
+// See: 15.10.1
+//
+// Pattern ::
+//      Disjunction
+//
+// Disjunction ::
+//      Alternative
+//      Alternative | Disjunction
+//
+// Alternative ::
+//      [empty]
+//      Alternative Term
+//
+// Term ::
+//      Assertion
+//      Atom
+//      Atom Quantifier
+//
 // Assertion ::
 //      ^
 //      $
@@ -184,7 +200,7 @@ function parse(str) {
     }
 
     function createQuantifier(min, max, from, to) {
-        if (to === null) {
+        if (to == null) {
             from = pos - 1;
             to = pos;
         }
@@ -407,7 +423,7 @@ function parse(str) {
         var min, max;
 
         if (match('*')) {
-            quantifier = createQuantifier(0);
+            quantifier = createQuantifier(1);
         }
         else if (match('+')) {
             quantifier = createQuantifier(1);
