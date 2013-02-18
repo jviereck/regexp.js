@@ -42,62 +42,63 @@ Node.NOT_MATCH = 'NOT_MATCH';
 Node.FUNC = 'FUNC';
 
 var idCounterTrace = 0;
-function Trace(parent, title) {
+
+function TraceEntry(pos, node) {
+    this.id = idCounterTrace++;
+    this.pos = pos;
+    this.node = node;
+    this.notes = [];
+    this.children = [];
+}
+
+TraceEntry.prototype = {
+    addNote: function(pos, node, comment) {
+        this.notes.push(node);
+    }
+}
+
+function Trace(parent, pos, node) {
+    this.id = idCounterTrace++;
+
     if (!parent) {
         this.traceHash = {};
     } else {
         this.traceHash = parent.traceHash;
     }
 
+    this.pos = pos;
+    this.node = node;
     this.parent = parent || null;
     this.finalTrace = false;
     this.lastItem = null;
     this.children = [];
-    this.title = title || 'UNKOWN';
     this.addToTraceHash(this);
 }
 
 Trace.prototype = {
     addToTraceHash: function(item) {
-        var id = item.id = idCounterTrace++;
-        item.li_attr = { "data-trace-id": id };
-        this.traceHash[id] = item;
+        this.traceHash[item.id] = item;
     },
 
-    createChild: function(title) {
-        var child = new Trace(this, title);
+    createChild: function(pos, node) {
+        var child = new Trace(this, pos, node);
         this.lastItem.children.push(child);
         return child;
     },
 
-    record: function(pos, node, title) {
-        var from, to, parseEntry = node.parseEntry;
-        if (parseEntry) {
-            from = parseEntry.from;
-            to = parseEntry.to;
-        }
-        this.lastItem = {
-            pos: pos,
-            node: node,
-            title: title,
-            from: from,
-            to: to,
-            children: []
-        };
+    record: function(pos, node) {
+        this.lastItem = new TraceEntry(pos, node);
         this.addToTraceHash(this.lastItem);
         this.children.push(this.lastItem);
     },
 
     fail: function() {
-        this.children.push({
-            title: 'FAIL TO MATCH'
-        });
+        //
     },
 
     success: function() {
-        this.children.push({
-            title: 'SUCCESS'
-        });
+        // Set `finalTrace` on this trace and all it's parent traces
+        // to true.
         var parent = this;
         while (parent) {
             parent.finalTrace = true;
@@ -106,11 +107,7 @@ Trace.prototype = {
     },
 
     comment: function(pos, node, comment) {
-        this.lastItem.children.push({
-            pos: pos,
-            node: node,
-            title: comment
-        });
+        this.lastItem.addNote(pos, node, comment);
     }
 }
 
@@ -153,7 +150,7 @@ State.prototype.clone = function(node) {
     var cloned = new State(
         this.str,
         this.regExpStr,
-        this.trace.createChild('Try: ' + this.nodeToString(node))
+        this.trace.createChild(this.idx, node)
     );
     cloned.idx = this.idx;
     cloned.matches = clone(this.matches);
@@ -199,27 +196,7 @@ State.prototype.isWordChar = function(offset) {
 
 // Things to record a trace on the state.
 State.prototype.try = function(node) {
-    if (node.type === Node.JOIN) return;
-    var comment = '';
-    var parseEntry = node.parseEntry;
-    if (parseEntry) {
-        var commentLabel = '';
-        switch (node.type) {
-            case Node.GROUP_BEGIN:
-                commentLabel = 'ENTER_GROUP';
-                break;
-            case Node.GROUP_END:
-                commentLabel = 'LEAVE_GROUP';
-                break;
-            default:
-                commentLabel = 'Execute';
-                break;
-        }
-        comment = commentLabel + ': ' + this.regExpStr.substring(parseEntry.from, parseEntry.to)
-    } else {
-        comment = node.type;
-    }
-    this.trace.record(this.idx, node, comment)
+    this.trace.record(this.idx, node)
 };
 
 State.prototype.comment = function(node, comment) {
@@ -873,7 +850,7 @@ function exec(matchStr, regExpStr) {
         nodes//,
     )[0];
 
-    var trace = new Trace(null);
+    var trace = new Trace(null, 0, startNode);
     var state = new State(matchStr, regExpStr, trace);
     var endState = match(state, startNode);
     endState.trace = trace;
