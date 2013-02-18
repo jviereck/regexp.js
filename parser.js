@@ -423,7 +423,7 @@ function parse(str) {
         var min, max;
 
         if (match('*')) {
-            quantifier = createQuantifier(1);
+            quantifier = createQuantifier(0);
         }
         else if (match('+')) {
             quantifier = createQuantifier(1);

@@ -13,6 +13,13 @@
         span.highlight {
             background-color: orange;
         }
+
+        #traces > span {
+            border: 1px solid gray;
+            display: inline-block;
+            width: 20px;
+            text-align: center;
+        }
     </style>
 </head>
 
@@ -20,10 +27,10 @@
 
 <table width="500px">
     <tr>
-        <td>RegExp:</td><td><input id="regexp" style="width:100%" value="\w*.*\w"></input><span style="display:hidden" id="regexpRenderer"></span></td>
+        <td>RegExp:</td><td><input id="regexp" style="width:100%" value="(\w\w)*.*\w"></input><span style="display:hidden" id="regexpRenderer"></span></td>
     </tr>
     <tr>
-        <td>Input:</td><td><textarea id="area" rows=5 style="width:100%">foo: bar</textarea></td>
+        <td>Input:</td><td><textarea id="area" rows=5 style="width:100%">foofoofoo: bar</textarea></td>
     </tr>
     </tr>
         <td></td><td><button onclick="matchIt()" >Match</button></td>
@@ -35,6 +42,7 @@
         <td>ParseTree:</td><td><textarea id="parseTree" rows=10 style="width:100%"></textarea></td>
     </tr>
 </table>
+<div id="traces"></div>
 
 <div id="selector" style="overflow: scroll;height:300px">
 </div>
@@ -47,6 +55,7 @@ var regExpDom = document.getElementById('regexp');
 var regexpRendererDom = document.getElementById('regexpRenderer');
 
 var inputDom = document.getElementById('area');
+var tracesDom = document.getElementById('traces');
 
 $(treeContainer).jstree({
     "themes" : {
@@ -68,13 +77,7 @@ function renderRegExpDom(from, to) {
     regexpRendererDom.innerHTML = html;
 }
 
-function reflectTreeSelection() {
-    var ui = ref.data.ui;
-    // Get the data used to create the hovered or if no hoverd node present
-    // the current selected node.
-    var traceId = (ui.hovered || ui.selected)[0].getAttribute('data-trace-id');
-    var trace = lastRes.trace.traceHash[traceId];
-
+function reflectSelection(trace) {
     var selection;
     var pos;
     currentTrace = trace;
@@ -92,11 +95,79 @@ function reflectTreeSelection() {
     renderRegExpDom(selection.from, selection.to);
 
     inputDom.selectionStart = pos.from;
-    inputDom.selectionEnd = pos.to;
+    inputDom.selectionEnd = pos.to;    
 }
+
+function reflectTreeSelection() {
+    var ui = ref.data.ui;
+    // Get the data used to create the hovered or if no hoverd node present
+    // the current selected node.
+    var traceId = (ui.hovered || ui.selected)[0].getAttribute('data-trace-id');
+    var trace = lastRes.trace.traceHash[traceId];
+
+    reflectSelection(trace);
+}
+
+tracesDom.addEventListener('mouseover', function(e) {
+    var target = e.target;
+    var traceId = target.getAttribute('data-trace-id');
+    var trace = lastRes.trace.traceHash[traceId];
+
+    reflectSelection(trace);
+})
+
 
 $(treeContainer).bind("hover_node.jstree", reflectTreeSelection);
 $(treeContainer).bind("select_node.jstree", reflectTreeSelection);
+
+function getTitleFromNode(node) {
+    return node.type;
+}
+
+function traceToHTML(traceNode) {
+    if (traceNode == null) {
+        return '';
+    }
+    var display = '';
+    if (traceNode.node.parseEntry == null) {
+        display = '';
+    } else {
+        if (traceNode.node.type == Node.GROUP_BEGIN) {
+            display = '(';
+        } else if (traceNode.node.type == Node.GROUP_END) {
+            display = ')';
+        } else {
+            display = traceNode.node.parseEntry.bit;
+        }
+    }
+
+    var html = '<span data-trace-id="' + traceNode.id + '">' + display + '</span>';
+    return traceToHTML(traceNode.previous) + html;
+}
+
+function mapNode(traceNode) {
+    var item = {
+        title: 'Execute: ' + traceNode.node.type,
+        li_attr: { "data-trace-id": traceNode.id },
+    };
+
+    if (traceNode.children.length === 0) {
+        return item;
+    } else if (traceNode.children.length === 1) {
+        var child = traceNode.children[0];
+        var childItems = mapNode(child);
+        // if (child instanceof Trace && !child.finalTrace) {
+        //     item.children = childItems;
+        //     return item;
+        // } else {
+            return [item].concat(childItems);
+        //}
+    } else {
+        var lastIdx = traceNode.children.length - 1;
+        item.children = traceNode.children.slice(0, lastIdx).map(mapNode);
+        return [item].concat(mapNode(traceNode.children[lastIdx]));
+    }
+}
 
 function matchIt() {
     regExpDom.style.display = 'none';
@@ -113,6 +184,7 @@ function matchIt() {
         return;
     }
 
+    // console.log(mapNode(res.trace));
 
     var resOutput;
     if (res.matches) {
@@ -121,17 +193,19 @@ function matchIt() {
         if (treeRoot) {
             ref.delete_node(treeRoot);
         }
-        treeRoot = ref.create_node(-1, res.trace, 'before');
+        treeRoot = ref.create_node(-1, mapNode(res.trace), 'before');
         ref.open_all();
     } else {
         resOutput = 'null';
     }
 
+    tracesDom.innerHTML = res.trace.traceTail.map(traceToHTML).join('<br>')
+
     document.getElementById('result').value = resOutput;
     document.getElementById('parseTree').value = JSON.stringify(res.parseTree, null, 4);
 }
 
-runTests();
+// runTests();
 
 window.onload = function() {
     matchIt();

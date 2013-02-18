@@ -43,12 +43,13 @@ Node.FUNC = 'FUNC';
 
 var idCounterTrace = 0;
 
-function TraceEntry(pos, node) {
+function TraceEntry(pos, node, previous) {
     this.id = idCounterTrace++;
     this.pos = pos;
     this.node = node;
     this.notes = [];
     this.children = [];
+    this.previous = previous;
 }
 
 TraceEntry.prototype = {
@@ -62,8 +63,10 @@ function Trace(parent, pos, node) {
 
     if (!parent) {
         this.traceHash = {};
+        this.traceTail = [];
     } else {
         this.traceHash = parent.traceHash;
+        this.traceTail = parent.traceTail;
     }
 
     this.pos = pos;
@@ -73,6 +76,11 @@ function Trace(parent, pos, node) {
     this.lastItem = null;
     this.children = [];
     this.addToTraceHash(this);
+
+    if (parent) {
+        this.previous = this.parent.lastItem;    
+    }
+    
 }
 
 Trace.prototype = {
@@ -82,21 +90,28 @@ Trace.prototype = {
 
     createChild: function(pos, node) {
         var child = new Trace(this, pos, node);
-        this.lastItem.children.push(child);
+        this.lastItem = child;
+        this.children.push(child);
         return child;
     },
 
     record: function(pos, node) {
-        this.lastItem = new TraceEntry(pos, node);
+        var previousItem = this.lastItem || this.parent.lastItem;
+        this.lastItem = new TraceEntry(pos, node, previousItem);
         this.addToTraceHash(this.lastItem);
         this.children.push(this.lastItem);
     },
 
     fail: function() {
-        //
+        this.failed = true;
+        this.lastItem.failed = true;
+        this.traceTail.push(this.lastItem);
     },
 
     success: function() {
+        this.traceTail.push(this.lastItem);
+        this.lastItem.failed = false;
+
         // Set `finalTrace` on this trace and all it's parent traces
         // to true.
         var parent = this;
@@ -146,11 +161,11 @@ State.prototype.nodeToString = function(node) {
     }
 }
 
-State.prototype.clone = function(node) {
+State.prototype.clone = function(node, parentNode) {
     var cloned = new State(
         this.str,
         this.regExpStr,
-        this.trace.createChild(this.idx, node)
+        this.trace.createChild(this.idx, parentNode)
     );
     cloned.idx = this.idx;
     cloned.matches = clone(this.matches);
@@ -213,15 +228,16 @@ State.prototype.success = function() {
 }
 
 function match(state, node) {
-    function fork(node) {
-        return match(state.clone(node), node);
+    function fork(parentNode, childNode) {
+        return match(state.clone(childNode, parentNode), childNode);
     }
 
     var res;
     while (node) {
         var nextChar = state.getCurrentChar();
 
-        state.try(node);
+        if (node.type !== Node.REPEAT)
+            state.try(node);
 
         switch (node.type) {
             case Node.FUNC:
@@ -242,6 +258,7 @@ function match(state, node) {
                 // be zero.
                 var counter = state.incCounts(node.id);
                 if (counter < node.min) {
+                    state.try(node);
                     state.comment(node, 'Need to repeat another time');
                     // Haven't matched the minimum number yet
                     // -> match one more time.
@@ -254,13 +271,13 @@ function match(state, node) {
                     // match \in {from, to}
                     if (node.greedy) {
                         // 15.10.2.5: Greedy - repeat child as many times as possible.
-                        res = fork(node.child);
+                        res = fork(node, node.child);
                         if (!res) {
                             res = match(state, node.next);
                         }
                     } else {
                         // 15.10.2.5: non-greedy - repeat child as less times as possible.
-                        res = fork(node.next);
+                        res = fork(node, node.next);
                         if (!res) {
                             res = match(state, node.child);
                         }
@@ -314,7 +331,7 @@ function match(state, node) {
                 break;
             case Node.ALTR:
                 for (var i = 0; i < node.children.length; i++) {
-                    res = fork(node.children[i]);
+                    res = fork(node, node.children[i]);
                     if (res) {
                         return res;
                     }
@@ -356,7 +373,7 @@ function match(state, node) {
 
             case Node.NOT_MATCH:
                 // Case of: x(?!y)
-                res = fork(node.child);
+                res = fork(node, node.child);
                 if (res) {
                     return false;
                 }
