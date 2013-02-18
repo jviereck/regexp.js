@@ -70,12 +70,6 @@ Trace.prototype = {
         return child;
     },
 
-    isFinalTrace: function() {
-        return this.finalTrace || this.lastItem.children.some(function(child) {
-            return child.isFinalTrace();
-        });
-    },
-
     record: function(pos, node, title) {
         var from, to, parseEntry = node.parseEntry;
         if (parseEntry) {
@@ -98,6 +92,17 @@ Trace.prototype = {
         this.children.push({
             title: 'FAIL TO MATCH'
         });
+    },
+
+    success: function() {
+        this.children.push({
+            title: 'SUCCESS'
+        });
+        var parent = this;
+        while (parent) {
+            parent.finalTrace = true;
+            parent = parent.parent;
+        }
     },
 
     comment: function(pos, node, comment) {
@@ -226,7 +231,9 @@ State.prototype.fail = function() {
     return false;
 };
 
-State.prototype.success = function() { return true; }
+State.prototype.success = function() {
+    this.trace.success();
+}
 
 function match(state, node) {
     function fork(node) {
@@ -244,7 +251,6 @@ function match(state, node) {
                 if (!node.func(state)) {
                     return state.fail();
                 }
-                state.success();
                 node = node.next;
                 break;
 
@@ -389,6 +395,8 @@ function match(state, node) {
     if (node) {
         return false;
     }
+
+    state.success();
 
     return state;
 }
@@ -856,6 +864,8 @@ function exec(matchStr, regExpStr) {
 
     idCounter = 0;
     groupCounter = 1;
+    idCounterTrace = 0;
+
     var nodes = bGroup(walk(parseTree), 0, parseTree.lastMatchIdx);
 
     var startNode = bJoin(
