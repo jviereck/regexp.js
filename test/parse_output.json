@@ -401,7 +401,7 @@
     "lastMatchIdx": 0
   },
   {
-    "error": "SyntaxError: \\B not possible inside of CharacterClass"
+    "error": {}
   },
   {
     "type": "alternative",
@@ -561,7 +561,7 @@
     "lastMatchIdx": 0
   },
   {
-    "error": "SyntaxError: Expected atom"
+    "error": {}
   },
   {
     "type": "alternative",
@@ -631,7 +631,7 @@
     "lastMatchIdx": 0
   },
   {
-    "error": "SyntaxError: Expected atom"
+    "error": {}
   },
   {
     "type": "alternative",
