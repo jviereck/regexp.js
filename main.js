@@ -851,6 +851,15 @@ function walk(node, inCharacterClass) {
     return res;
 }
 
+function buildFakeParseEntry(from, to, bit) {
+    return {
+        from: from,
+        to: to,
+        bit: bit,
+        booting: true
+    };
+}
+
 function exec(matchStr, regExpStr) {
     // tests: 'abc', 'a+'
 
@@ -860,11 +869,20 @@ function exec(matchStr, regExpStr) {
     groupCounter = 1;
     idCounterTrace = 0;
 
-    var nodes = bGroup(walk(parseTree), 0, parseTree.lastMatchIdx);
+
+    var bootDot = bDot();
+    bootDot[0].parseEntry = buildFakeParseEntry(-3, -2, '.');
+
+    var bootRepeat = bRepeat(false, 0, matchStr.length + 1, bootDot);
+    bootRepeat[0].parseEntry = buildFakeParseEntry(-2, -1, '*');
+
+    var bootGroup = bGroup(walk(parseTree), 0, parseTree.lastMatchIdx);
+    var bootGroupParseEntry = buildFakeParseEntry(-1, matchStr.length + 1, '()');
+    bootGroup[0].parseEntry = bootGroup[1].parseEntry = bootGroupParseEntry;
 
     var startNode = bJoin(
-        bRepeat(false, 0, matchStr.length + 1, bDot()),
-        nodes//,
+        bootRepeat,
+        bootGroup
     )[0];
 
     var trace = new Trace(null, 0, startNode);

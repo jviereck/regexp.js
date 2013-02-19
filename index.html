@@ -25,8 +25,17 @@
             background-color: red;
         }
 
+        #traces span:hover {
+            border: 1px solid red;
+            background-color: orange;
+        }
+
         #traces span.matched {
             background-color: green;
+        }
+
+        #traces span.booting {
+            background-color: yellow;
         }
 
         #traces .traceRun {
@@ -138,6 +147,8 @@ function traceToHTML(traceNode) {
             className = 'failed';
         } else if (traceNode.matched) {
             className = 'matched';
+        } else if (traceNode.node.parseEntry.booting) {
+            className = 'booting';
         }
     }
 
