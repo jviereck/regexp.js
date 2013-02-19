@@ -561,7 +561,7 @@
     "lastMatchIdx": 0
   },
   {
-    "error": "Could not parse entire input - got stuck."
+    "error": "SyntaxError: Expected atom"
   },
   {
     "type": "alternative",
@@ -631,7 +631,7 @@
     "lastMatchIdx": 0
   },
   {
-    "error": "Could not parse entire input - got stuck."
+    "error": "SyntaxError: Expected atom"
   },
   {
     "type": "alternative",

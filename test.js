@@ -3,8 +3,8 @@ var fs = require('fs');
 var parse = require('./lib/parser.js').parse;
 var RegExpJS = require('./index').RegExpJS;
 
-var parseTests = JSON.parse(fs.readFileSync('tests/parse_input.json') || '[]');
-var parseResult = JSON.parse(fs.readFileSync('tests/parse_output.json') || '[]');
+var parseTests = JSON.parse(fs.readFileSync('test/parse_input.json') || '[]');
+var parseResult = JSON.parse(fs.readFileSync('test/parse_output.json') || '[]');
 
 if (parseTests.length !== parseResult.length) {
     fail('Parse input and output file needs to have same number of arguments');
@@ -15,7 +15,7 @@ parseTests.forEach(function(input, idx) {
     var res = parseResult[idx];
 
     if (JSON.stringify(par) !== JSON.stringify(res)) {
-        throw 'Failure parsing string ' + input;
+        throw 'Failure parsing string ' + input + ':' + JSON.stringify(par) + '\n' + JSON.stringify(res);
     } else {
         console.log('PASSED TEST: ' + input);
     }
@@ -28,7 +28,7 @@ function assertEndState(endState, lastIdx, matches) {
     }
 
     function pass() {
-        // console.log('PASSED TEST');
+        console.log('PASSED TEST');
     }
 
     if (endState) {
