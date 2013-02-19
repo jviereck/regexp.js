@@ -48,24 +48,31 @@
 
 <table width="500px">
     <tr>
-        <td>RegExp:</td><td><input id="regexp" style="width:100%" value="(\w\w)*.*\w"></input><span style="display:hidden" id="regexpRenderer"></span></td>
+        <td>RegExp:</td>
+        <td>
+            <input id="regexp" style="width:100%" value="(\w\w)*.*\w"></input>
+            <span style="display:hidden" id="regexpRenderer"></span>
+        </td>
     </tr>
     <tr>
         <td>Input:</td><td><textarea id="area" rows=5 style="width:100%">foofoofoo: bar</textarea></td>
     </tr>
-    </tr>
-        <td></td><td><button onclick="matchIt()" >Match</button></td>
-    </tr>
     <tr>
+        <td></td><td>
+            <button id="newRegExpButton" onclick="newRegExp()" display="inline">New RegExp</button>
+            <button id="matchItButton" onclick="matchIt()" >Match</button>
+        </td>
+    </tr>
+    <tr id="resultTR">
         <td>Result:</td><td><textarea id="result" rows=5 style="width:100%"></textarea></td>
     </tr>
-    <tr>
+    <tr id="tracesTR">
         <td>Traces:</td>
         <td>
             <div id="traces" style="width:400px;overflow:auto"></div>
         </td>
     </tr>
-    <tr>
+    <tr id="parseTreeTR">
         <td>ParseTree:</td><td><textarea id="parseTree" rows=10 style="width:100%"></textarea></td>
     </tr>
 </table>
@@ -74,7 +81,35 @@
 <script>
 
 var regExpDom = document.getElementById('regexp');
-var regexpRendererDom = document.getElementById('regexpRenderer');
+var regExpRendererDom = document.getElementById('regexpRenderer');
+var newRegExpButton = document.getElementById('newRegExpButton');
+var matchItButton = document.getElementById('newRegExpButton');
+
+var infoTRs = ['resultTR', 'tracesTR', 'parseTreeTR'].map(function(str) { 
+    return document.getElementById(str); 
+});
+
+function show(dom, inline) {
+    dom.style.display = !inline ? 'block' : 'inline';
+}
+function hide(dom) {
+    dom.style.display = 'none';
+}
+
+function showRegExpInput() {
+    show(regExpDom);
+    hide(regExpRendererDom);
+    hide(newRegExpButton);
+    // infoTRs.map(hide);
+}
+
+function showRegExpResult() {
+    hide(regExpDom);
+    show(regExpRendererDom);
+    show(newRegExpButton, true);
+    // infoTRs.map(show);
+}
+
 
 var inputDom = document.getElementById('area');
 var tracesDom = document.getElementById('traces');
@@ -85,7 +120,7 @@ var currentTrace = null;
 function renderRegExpDom(from, to) {
     var regexp = regExpDom.value;
     var html = regexp.substring(0, from) + '<span class="highlight">' + regexp.substring(from, to) + '</span>' + regexp.substring(to);
-    regexpRendererDom.innerHTML = html;
+    regExpRendererDom.innerHTML = html;
 }
 
 function reflectSelection(trace) {
@@ -156,9 +191,13 @@ function traceToHTML(traceNode) {
     return traceToHTML(traceNode.previous) + html;
 }
 
+function newRegExp() {
+    showRegExpInput();
+}
+
 function matchIt() {
-    regExpDom.style.display = 'none';
-    regexpRendererDom.style.display = 'block';
+    showRegExpResult();
+
     renderRegExpDom(0, 0);
 
     var regexp = regExpDom.value;
@@ -188,9 +227,10 @@ function matchIt() {
 }
 
 runTests();
+showRegExpInput();
 
 window.onload = function() {
-    matchIt();
+    // matchIt();
 }
 
 </script>

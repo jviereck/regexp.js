@@ -352,8 +352,11 @@ function parse(str) {
         var quantifier = parseQuantifier() || false;
         if (quantifier) {
             quantifier.child = atom;
-            quantifier.firstMatchIdx = Math.min(matchIdx + 1, lastMatchIdx);
-            quantifier.lastMatchIdx = lastMatchIdx;
+            if (matchIdx + 1 <= lastMatchIdx) {
+                quantifier.firstMatchIdx = matchIdx + 1;
+                quantifier.lastMatchIdx = lastMatchIdx;
+            }
+
             return quantifier;
         }
         return atom;

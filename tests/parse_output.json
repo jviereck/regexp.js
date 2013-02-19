@@ -622,9 +622,7 @@
         },
         "from": 1,
         "to": 2,
-        "bit": "*",
-        "firstMatchIdx": 0,
-        "lastMatchIdx": 0
+        "bit": "*"
       }
     ],
     "from": 0,
