@@ -110,7 +110,7 @@ Trace.prototype = {
 
     success: function() {
         this.traceTail.push(this.lastItem);
-        this.lastItem.failed = false;
+        this.lastItem.matched = true;
 
         // Set `finalTrace` on this trace and all it's parent traces
         // to true.

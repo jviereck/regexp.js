@@ -20,6 +20,14 @@
             width: 20px;
             text-align: center;
         }
+
+        #traces > span.failed {
+            background-color: red;
+        }
+
+        #traces > span.matched {
+            background-color: green;
+        }
     </style>
 </head>
 
@@ -44,30 +52,14 @@
 </table>
 <div id="traces"></div>
 
-<div id="selector" style="overflow: scroll;height:300px">
-</div>
-
 <script>
-$.jstree.THEMES_DIR = 'support/themes/';
 
-var treeContainer = '#selector';
 var regExpDom = document.getElementById('regexp');
 var regexpRendererDom = document.getElementById('regexpRenderer');
 
 var inputDom = document.getElementById('area');
 var tracesDom = document.getElementById('traces');
 
-$(treeContainer).jstree({
-    "themes" : {
-        "theme" : "default",
-        "dots" : true,
-        "icons" : false
-    },
-    "plugins" : [ "themes", "html_data","ui", "hotkeys" ]
-});
-
-var ref = jQuery.jstree._reference(treeContainer)
-var treeRoot;
 var lastRes = null;
 var currentTrace = null;
 
@@ -116,19 +108,12 @@ tracesDom.addEventListener('mouseover', function(e) {
     reflectSelection(trace);
 })
 
-
-$(treeContainer).bind("hover_node.jstree", reflectTreeSelection);
-$(treeContainer).bind("select_node.jstree", reflectTreeSelection);
-
-function getTitleFromNode(node) {
-    return node.type;
-}
-
 function traceToHTML(traceNode) {
     if (traceNode == null) {
         return '';
     }
     var display = '';
+    var className = '';
     if (traceNode.node.parseEntry == null) {
         display = '';
     } else {
@@ -139,34 +124,15 @@ function traceToHTML(traceNode) {
         } else {
             display = traceNode.node.parseEntry.bit;
         }
+        if (traceNode.failed) {
+            className = 'failed';
+        } else if (traceNode.matched) {
+            className = 'matched';
+        }
     }
 
-    var html = '<span data-trace-id="' + traceNode.id + '">' + display + '</span>';
+    var html = '<span class="' + className + '" data-trace-id="' + traceNode.id + '">' + display + '</span>';
     return traceToHTML(traceNode.previous) + html;
-}
-
-function mapNode(traceNode) {
-    var item = {
-        title: 'Execute: ' + traceNode.node.type,
-        li_attr: { "data-trace-id": traceNode.id },
-    };
-
-    if (traceNode.children.length === 0) {
-        return item;
-    } else if (traceNode.children.length === 1) {
-        var child = traceNode.children[0];
-        var childItems = mapNode(child);
-        // if (child instanceof Trace && !child.finalTrace) {
-        //     item.children = childItems;
-        //     return item;
-        // } else {
-            return [item].concat(childItems);
-        //}
-    } else {
-        var lastIdx = traceNode.children.length - 1;
-        item.children = traceNode.children.slice(0, lastIdx).map(mapNode);
-        return [item].concat(mapNode(traceNode.children[lastIdx]));
-    }
 }
 
 function matchIt() {
@@ -184,24 +150,8 @@ function matchIt() {
         return;
     }
 
-    // console.log(mapNode(res.trace));
-
-    var resOutput;
-    if (res.matches) {
-        resOutput = JSON.stringify(res.matches, null, 4);
-
-        if (treeRoot) {
-            ref.delete_node(treeRoot);
-        }
-        treeRoot = ref.create_node(-1, mapNode(res.trace), 'before');
-        ref.open_all();
-    } else {
-        resOutput = 'null';
-    }
-
     tracesDom.innerHTML = res.trace.traceTail.map(traceToHTML).join('<br>')
 
-    document.getElementById('result').value = resOutput;
     document.getElementById('parseTree').value = JSON.stringify(res.parseTree, null, 4);
 }
 
