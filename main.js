@@ -262,6 +262,16 @@ function match(state, node) {
                 break;
 
             case Node.REPEAT:
+                var lastIdx = state.get(node.id);
+                if (lastIdx !== undefined && lastIdx === state.idx) {
+                    // Have the case of an empty match. No process is made
+                    // no mather how often this repetition is applied. Therefore
+                    // continue with the next node right away.
+                    state.set(node.id, undefined);
+                    return match(state, node.next);
+                } else {
+                    state.set(node.id, state.idx);
+                }
 
                 // StateCounters start at -1 -> first inc makes the counter be zero.
                 var counter = state.incCounts(node.id);
@@ -694,6 +704,8 @@ function runTests() {
 
     // Repetition
     assertEndState(exec('abab', '((a)|(b))*'), 4, ['abab', 'b', undefined, 'b']);
+    assertEndState(exec('a', '()*'), 0, ['', '']);
+    assertEndState(exec('a', '(()*)*'), 0, ['', '', '']);
 }
 
 function nodeToCharCode(node) {
