@@ -564,6 +564,75 @@
     "error": "Could not parse entire input - got stuck."
   },
   {
+    "type": "alternative",
+    "terms": [
+      {
+        "type": "quantifier",
+        "min": 0,
+        "greedy": true,
+        "child": {
+          "type": "group",
+          "behavior": "normal",
+          "disjunction": {
+            "type": "alternative",
+            "terms": [
+              {
+                "type": "character",
+                "char": "a",
+                "from": 1,
+                "to": 2,
+                "bit": "a"
+              }
+            ],
+            "from": 1,
+            "to": 2,
+            "bit": "a"
+          },
+          "from": 0,
+          "to": 3,
+          "bit": "(a)",
+          "matchIdx": 1,
+          "lastMatchIdx": 1
+        },
+        "from": 3,
+        "to": 4,
+        "bit": "*",
+        "firstMatchIdx": 1,
+        "lastMatchIdx": 1
+      }
+    ],
+    "from": 0,
+    "to": 4,
+    "bit": "(a)*",
+    "lastMatchIdx": 1
+  },
+  {
+    "type": "alternative",
+    "terms": [
+      {
+        "type": "quantifier",
+        "min": 0,
+        "greedy": true,
+        "child": {
+          "type": "character",
+          "char": "a",
+          "from": 0,
+          "to": 1,
+          "bit": "a"
+        },
+        "from": 1,
+        "to": 2,
+        "bit": "*",
+        "firstMatchIdx": 0,
+        "lastMatchIdx": 0
+      }
+    ],
+    "from": 0,
+    "to": 2,
+    "bit": "a*",
+    "lastMatchIdx": 0
+  },
+  {
     "error": "Could not parse entire input - got stuck."
   },
   {

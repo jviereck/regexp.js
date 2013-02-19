@@ -78,9 +78,8 @@ function Trace(parent, pos, node) {
     this.addToTraceHash(this);
 
     if (parent) {
-        this.previous = this.parent.lastItem;    
+        this.previous = this.parent.lastItem;
     }
-    
 }
 
 Trace.prototype = {
@@ -168,7 +167,7 @@ State.prototype.clone = function(node, parentNode) {
         this.trace.createChild(this.idx, parentNode)
     );
     cloned.idx = this.idx;
-    cloned.matches = clone(this.matches);
+    cloned.matches = this.matches.slice(0, this.matches.length)
     cloned.counts = clone(this.counts);
     cloned.data = clone(this.data);
     return cloned;
@@ -228,8 +227,23 @@ State.prototype.success = function() {
 }
 
 function match(state, node) {
-    function fork(parentNode, childNode) {
-        return match(state.clone(childNode, parentNode), childNode);
+    function fork(parentNode, childNode, resetMatches) {
+        var forkedState = state.clone(childNode, parentNode);
+        
+        if (resetMatches) {
+            resetRepeatMaches(node, forkedState);
+        }
+
+        return match(forkedState, childNode);
+    }
+
+    function resetRepeatMaches(node, stateToReset) {
+        var parseEntry = node.parseEntry;
+        if (parseEntry && parseEntry.firstMatchIdx != null && parseEntry.firstMatchIdx >= 0) {
+            for (var i = parseEntry.firstMatchIdx; i <= parseEntry.lastMatchIdx; i++) {
+                stateToReset.resetMatch(i);
+            }
+        }
     }
 
     var res;
@@ -248,16 +262,11 @@ function match(state, node) {
                 break;
 
             case Node.REPEAT:
-                // TODO: Reset values of groups.
 
-                // Don't use a for/while loop for the repetitions here as
-                // otherwise it's hard to get the matching for alt working
-                // without tracking some additional state.
-
-                // StateCounters start at -1 -> first inc makes the counter
-                // be zero.
+                // StateCounters start at -1 -> first inc makes the counter be zero.
                 var counter = state.incCounts(node.id);
                 if (counter < node.min) {
+                    resetRepeatMaches(node, state);
                     state.try(node);
                     state.comment(node, 'Need to repeat another time');
                     // Haven't matched the minimum number yet
@@ -271,7 +280,7 @@ function match(state, node) {
                     // match \in {from, to}
                     if (node.greedy) {
                         // 15.10.2.5: Greedy - repeat child as many times as possible.
-                        res = fork(node, node.child);
+                        res = fork(node, node.child, true);
                         if (!res) {
                             res = match(state, node.next);
                         }
@@ -279,6 +288,7 @@ function match(state, node) {
                         // 15.10.2.5: non-greedy - repeat child as less times as possible.
                         res = fork(node, node.next);
                         if (!res) {
+                            resetRepeatMaches(node, state);
                             res = match(state, node.child);
                         }
                     }
@@ -345,11 +355,6 @@ function match(state, node) {
 
             case Node.GROUP_BEGIN:
                 state.set(node.matchIdx, state.idx);
-                if (node.lastMatchIdx != null && node.lastMatchIdx >= 0) {
-                    for (var i = node.matchIdx; i <= node.lastMatchIdx; i++) {
-                        state.resetMatch(i);
-                    }
-                }
 
                 node = node.next;
                 break;
@@ -687,7 +692,8 @@ function runTests() {
     // Referencing
     assertEndState(exec('abab', 'a(.)a\\1'), 4, ['abab', 'b']);
 
-
+    // Repetition
+    assertEndState(exec('abab', '((a)|(b))*'), 4, ['abab', 'b', undefined, 'b']);
 }
 
 function nodeToCharCode(node) {
@@ -785,6 +791,8 @@ function walk(node, inCharacterClass) {
 
         case 'quantifier':
             res = bRepeat(node.greedy, node.min, node.max, walk(node.child));
+            res.firstMatchIdx = node.firstMatchIdx;
+            res.lastMatchIdx = node.lastMatchIdx;
             break;
 
         case 'group':
@@ -887,12 +895,22 @@ function exec(matchStr, regExpStr) {
 
     var trace = new Trace(null, 0, startNode);
     var state = new State(matchStr, regExpStr, trace);
+    state.matches = new Array(parseTree.lastMatchIdx + 1);
     var endState = match(state, startNode);
     endState.trace = trace;
 
     if (!endState) {
         endState = {};
+    } else {
+        // This is necessary as otherwise the length of the matches might fit
+        // but calling Object.keys don't return the right thing.
+        for (var i = 0; i < parseTree.lastMatchIdx + 1; i++) {
+            if (endState.matches[i] === undefined) {
+                endState.matches[i] = undefined;
+            }
+        }
     }
+
     endState.parseTree = parseTree;
     return endState;
 }

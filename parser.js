@@ -343,6 +343,8 @@ function parse(str) {
             return assertion;
         }
 
+        var matchIdx = lastMatchIdx;
+
         var atom = parseAtom();
         if (!atom) {
             return createEmpty();
@@ -350,6 +352,8 @@ function parse(str) {
         var quantifier = parseQuantifier() || false;
         if (quantifier) {
             quantifier.child = atom;
+            quantifier.firstMatchIdx = Math.min(matchIdx + 1, lastMatchIdx);
+            quantifier.lastMatchIdx = lastMatchIdx;
             return quantifier;
         }
         return atom;
