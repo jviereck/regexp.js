@@ -1,13 +1,6 @@
 <html>
 <head>
-    <script src="utils.js"></script>
-    <script src="parser.js"></script>
-    <script src="main.js"></script>
-
-    <script src="support/jquery.js"></script>
-    <script src="support/jstree.js"></script>
-    <script src="support/jstree.ui.js"></script>
-    <script src="support/jstree.hotkeys.js"></script>
+    <script src="build/browser.js"></script>
 
     <style>
         span.highlight {
@@ -171,9 +164,9 @@ function traceToHTML(traceNode) {
     if (traceNode.node.parseEntry == null) {
         display = '';
     } else {
-        if (traceNode.node.type == Node.GROUP_BEGIN) {
+        if (traceNode.node.type == 'GROUP_BEGIN') {
             display = '(';
-        } else if (traceNode.node.type == Node.GROUP_END) {
+        } else if (traceNode.node.type == 'GROUP_END') {
             display = ')';
         } else {
             display = traceNode.node.parseEntry.bit;
@@ -200,11 +193,11 @@ function matchIt() {
 
     renderRegExpDom(0, 0);
 
-    var regexp = regExpDom.value;
+    var regExp = new RegExpJS(regExpDom.value);
     var input = inputDom.value;
 
     try {
-        var res = window.res = lastRes = exec(input, regexp);
+        var res = window.res = lastRes = regExp.execDebug(input, regexp);
     } catch (exp) {
         alert('Sorry: ' + exp);
         return;
@@ -226,7 +219,7 @@ function matchIt() {
     document.getElementById('parseTree').value = JSON.stringify(res.parseTree, null, 4);
 }
 
-runTests();
+// runTests();
 showRegExpInput();
 
 window.onload = function() {
