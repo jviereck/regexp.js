@@ -14,19 +14,23 @@
             background-color: orange;
         }
 
-        #traces > span {
+        #traces span {
             border: 1px solid gray;
             display: inline-block;
             width: 20px;
             text-align: center;
         }
 
-        #traces > span.failed {
+        #traces span.failed {
             background-color: red;
         }
 
-        #traces > span.matched {
+        #traces span.matched {
             background-color: green;
+        }
+
+        #traces .traceRun {
+            margin-bottom: 3px;
         }
     </style>
 </head>
@@ -47,10 +51,16 @@
         <td>Result:</td><td><textarea id="result" rows=5 style="width:100%"></textarea></td>
     </tr>
     <tr>
+        <td>Traces:</td>
+        <td>
+            <div id="traces" style="width:400px;overflow:auto"></div>
+        </td>
+    </tr>
+    <tr>
         <td>ParseTree:</td><td><textarea id="parseTree" rows=10 style="width:100%"></textarea></td>
     </tr>
 </table>
-<div id="traces"></div>
+
 
 <script>
 
@@ -150,8 +160,19 @@ function matchIt() {
         return;
     }
 
-    tracesDom.innerHTML = res.trace.traceTail.map(traceToHTML).join('<br>')
+    var resOutput;
+    if (res.matches) {
+        resOutput = JSON.stringify(res.matches, null, 4);
+    } else {
+        resOutput = 'null';
+    }
 
+    tracesDom.innerHTML = res.trace.traceTail.map(function(tail) {
+        var html = traceToHTML(tail);
+        return '<div class="traceRun"><nobr>' + html + '</nobr></div>';
+    }).join('\n')
+
+    document.getElementById('result').value = resOutput;
     document.getElementById('parseTree').value = JSON.stringify(res.parseTree, null, 4);
 }
 
