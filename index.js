@@ -27,10 +27,7 @@ RegExpJS.prototype.exec = function RegExpJSExec(str) {
     }
 };
 
-console.log('booting!');
-
-
-if (typeof window !== undefined) {
+if (typeof window !== 'undefined') {
     window.RegExpJS = RegExpJS;
 }
 
