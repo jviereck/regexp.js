@@ -1,6 +1,19 @@
 <html>
 <head>
     <script src="build/browser.js"></script>
+    <link rel="stylesheet" href="support/codemirror.css">
+    <script src="support/codemirror.js"></script>
+
+    <style type="text/css">
+        .CodeMirror {
+            border: 1px solid black;
+        }
+        .CodeMirror .cm-matchhighlight {
+            background-color: orange;
+            background-position: bottom;
+            background-repeat: repeat-x;
+        }
+    </style>
 
     <style>
         span.highlight {
@@ -48,7 +61,7 @@
         </td>
     </tr>
     <tr>
-        <td>Input:</td><td><textarea id="area" rows=5 style="width:100%">foofoofoo: bar</textarea></td>
+        <td>Input:</td><td><textarea id="area" rows=5 style="width:100%;height:50px">foofoofoo: bar</textarea></td>
     </tr>
     <tr>
         <td></td><td>
@@ -93,19 +106,32 @@ function showRegExpInput() {
     show(regExpDom);
     hide(regExpRendererDom);
     hide(newRegExpButton);
-    // infoTRs.map(hide);
 }
 
 function showRegExpResult() {
     hide(regExpDom);
     show(regExpRendererDom);
     show(newRegExpButton, true);
-    // infoTRs.map(show);
 }
-
 
 var inputDom = document.getElementById('area');
 var tracesDom = document.getElementById('traces');
+
+var editor = CodeMirror.fromTextArea(inputDom, {
+  lineNumbers: true
+});
+editor.setSize(null, '100px');
+editor._overlay = null;
+
+function makeOverlay(pos) {
+    return {token: function(stream) {
+        if (stream.pos == pos.from && pos.from !== pos.to) {
+            stream.pos += pos.to - pos.from;
+            return 'matchhighlight';
+        }
+        stream.next();
+    }};
+}
 
 var lastRes = null;
 var currentTrace = null;
@@ -133,8 +159,10 @@ function reflectSelection(trace) {
 
     renderRegExpDom(selection.from, selection.to);
 
-    inputDom.selectionStart = pos.from;
-    inputDom.selectionEnd = pos.to;    
+    if (editor._overlay) {
+        editor.removeOverlay(editor._overlay);
+    }
+    editor.addOverlay(editor._overlay = makeOverlay(pos))
 }
 
 function reflectTreeSelection() {
