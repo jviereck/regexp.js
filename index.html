@@ -222,7 +222,7 @@ function matchIt() {
     renderRegExpDom(0, 0);
 
     var regExp = new RegExpJS(regExpDom.value);
-    var input = inputDom.value;
+    var input = editor.getValue();
 
     try {
         var res = window.res = lastRes = regExp.execDebug(input, regexp);
@@ -238,10 +238,12 @@ function matchIt() {
         resOutput = 'null';
     }
 
-    tracesDom.innerHTML = res.trace.traceTail.map(function(tail) {
+    var traceOutput = '<div>Steps Needed: ' + res.trace.entryCount + '</div>';
+    traceOutput += res.trace.traceTail.map(function(tail) {
         var html = traceToHTML(tail);
         return '<div class="traceRun"><nobr>' + html + '</nobr></div>';
-    }).join('\n')
+    }).join('\n');
+    tracesDom.innerHTML = traceOutput;
 
     document.getElementById('result').value = resOutput;
     document.getElementById('parseTree').value = JSON.stringify(res.parseTree, null, 4);
