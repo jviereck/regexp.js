@@ -170,7 +170,7 @@ function reflectTreeSelection() {
     // Get the data used to create the hovered or if no hoverd node present
     // the current selected node.
     var traceId = (ui.hovered || ui.selected)[0].getAttribute('data-trace-id');
-    var trace = lastRes.traces.traceHash[traceId];
+    var trace = lastRes.traces.data.traceHash[traceId];
 
     reflectSelection(trace);
 }
@@ -178,7 +178,7 @@ function reflectTreeSelection() {
 tracesDom.addEventListener('mouseover', function(e) {
     var target = e.target;
     var traceId = target.getAttribute('data-trace-id');
-    var trace = lastRes.traces.traceHash[traceId];
+    var trace = lastRes.traces.data.traceHash[traceId];
 
     reflectSelection(trace);
 })
@@ -196,6 +196,9 @@ function traceToHTML(traceNode) {
             display = '(';
         } else if (traceNode.node.type == 'GROUP_END') {
             display = ')';
+        } else if (traceNode.node.type == 'BACK') {
+            display = 'B';
+            className = 'booting';
         } else {
             display = traceNode.node.parseEntry.bit;
         }
@@ -238,7 +241,8 @@ function matchIt() {
         resOutput = 'null';
     }
 
-    var traceOutput = ''; //'<div>Steps Needed: ' + res.traces.entryCount + '</div>';
+    var traceOutput = '';
+    traceOutput += '<div>Steps: ' + res.traces.data.nodeCounter + ', Backreferences: ' + res.traces.data.backrefCounter + '</div>';
     traceOutput += res.traces.filter(function(trace) {
         return trace.isEndTrace;
     }).map(function(trace) {
