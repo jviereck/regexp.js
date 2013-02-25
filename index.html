@@ -20,6 +20,10 @@
             background-color: orange;
         }
 
+        span.booting {
+            background-color: #C6C6EC;
+        }
+
         #traces span {
             border: 1px solid gray;
             display: inline-block;
@@ -28,7 +32,7 @@
         }
 
         #traces span.failed {
-            background-color: red;
+            background-color: #FFB2A8;
         }
 
         #traces span:hover {
@@ -37,11 +41,11 @@
         }
 
         #traces span.matched {
-            background-color: green;
+            background-color: #4FC467;
         }
 
         #traces span.booting {
-            background-color: yellow;
+            background-color: #C6C6EC;
         }
 
         #traces .traceRun {
@@ -56,7 +60,9 @@
     <tr>
         <td>RegExp:</td>
         <td>
-            <input id="regexp" style="width:100%" value="(\w\w)*.*\w"></input>
+            <input id="regexp" style="width:100%" value="a|b"></input>
+            <!-- <input id="regexp" style="width:100%" value="b"></input> -->
+            <!-- <input id="regexp" style="width:100%" value="(\w\w)*.*\w"></input> -->
             <span style="display:hidden" id="regexpRenderer"></span>
         </td>
     </tr>
@@ -137,8 +143,19 @@ var lastRes = null;
 var currentTrace = null;
 
 function renderRegExpDom(from, to) {
-    var regexp = regExpDom.value;
-    var html = regexp.substring(0, from) + '<span class="highlight">' + regexp.substring(from, to) + '</span>' + regexp.substring(to);
+    var shift = 4;
+    var pre = '<span class="booting">';
+    var boot = '.*?';
+    var post = '</span>'
+    var regexp = pre + boot + post + regExpDom.value;
+
+    if (from >= 0) {
+        shift = pre.length + boot.length + post.length;
+    } else {
+        shift = pre.length + 4;
+    }
+
+    var html = regexp.substring(0, from + shift) + '<span class="highlight">' + regexp.substring(from + shift, to + shift) + '</span>' + regexp.substring(to + shift);
     regExpRendererDom.innerHTML = html;
 }
 
@@ -193,9 +210,9 @@ function traceToHTML(traceNode) {
         display = '';
     } else {
         if (traceNode.node.type == 'GROUP_BEGIN') {
-            display = '(';
+            display = ''; //(';
         } else if (traceNode.node.type == 'GROUP_END') {
-            display = ')';
+            display = ''; //')';
         } else if (traceNode.node.type == 'BACK') {
             display = 'B';
             className = 'booting';
@@ -211,7 +228,10 @@ function traceToHTML(traceNode) {
         }
     }
 
-    var html = '<span class="' + className + '" data-trace-id="' + traceNode.id + '">' + display + '</span>';
+    var html = '';
+    if (display) {
+        html = '<span class="' + className + '" data-trace-id="' + traceNode.id + '">' + display + '</span>';
+    }
     return traceToHTML(traceNode.previous) + html;
 }
 
@@ -242,7 +262,7 @@ function matchIt() {
     }
 
     var traceOutput = '';
-    traceOutput += '<div>Steps: ' + res.traces.data.nodeCounter + ', Backreferences: ' + res.traces.data.backrefCounter + '</div>';
+    traceOutput += '<div>Steps: ' + (res.traces.data.nodeCounter - 3) + ', Backreferences: ' + res.traces.data.backrefCounter + '</div>';
     traceOutput += res.traces.filter(function(trace) {
         return trace.isEndTrace;
     }).map(function(trace) {
