@@ -246,7 +246,7 @@ function traceToHTML(trace) {
                 display = ''; //')';
             } else if (traceNode.node.type == 'BACK') {
                 display = 'B';
-                className = 'arrow_box';
+                className += 'arrow_box';
             } else {
                 display = traceNode.node.parseEntry.bit;
             }
