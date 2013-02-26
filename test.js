@@ -93,4 +93,5 @@ assertEndState(exec('abab', 'a(.)a\\1'), 4, ['abab', 'b']);
 assertEndState(exec('abab', '((a)|(b))*'), 4, ['abab', 'b', undefined, 'b']);
 assertEndState(exec('a', '()*'), 0, ['', '']);
 assertEndState(exec('a', '(()*)*'), 0, ['', '', '']);
+assertEndState(exec('a', 'a{1}'), 1, ['a']);
 
