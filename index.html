@@ -74,6 +74,10 @@
             margin-left: -8px;
         }
 
+        .forked {
+            opacity: 0.5;
+        }
+
 
         #traces .traceRun {
             margin-bottom: 3px;
@@ -227,39 +231,53 @@ tracesDom.addEventListener('mouseover', function(e) {
     reflectSelection(trace);
 })
 
-function traceToHTML(traceNode) {
-    if (traceNode == null) {
-        return '';
-    }
-    var display = '';
-    var className = '';
-    if (traceNode.node.parseEntry == null) {
-        display = '';
-    } else {
-        if (traceNode.node.type == 'GROUP_BEGIN') {
-            display = ''; //(';
-        } else if (traceNode.node.type == 'GROUP_END') {
-            display = ''; //')';
-        } else if (traceNode.node.type == 'BACK') {
-            display = 'B';
-            className = 'arrow_box';
+function traceToHTML(trace) {
+    function traceNodeToHTML(traceNode, fromPreviousTrace) {
+        if (traceNode == null) {
+            return '';
+        }
+        var display = '';
+        var className = '';
+        if (traceNode.node.parseEntry == null) {
+            display = '';
         } else {
-            display = traceNode.node.parseEntry.bit;
+            if (traceNode.node.type == 'GROUP_BEGIN') {
+                display = ''; //(';
+            } else if (traceNode.node.type == 'GROUP_END') {
+                display = ''; //')';
+            } else if (traceNode.node.type == 'BACK') {
+                display = 'B';
+                className = 'arrow_box';
+            } else {
+                display = traceNode.node.parseEntry.bit;
+            }
+            if (traceNode.failed) {
+                className += ' failed';
+            } else if (traceNode.matched) {
+                className += ' matched';
+            } else if (traceNode.node.parseEntry.booting) {
+                className += ' booting';
+            }
         }
-        if (traceNode.failed) {
-            className += ' failed';
-        } else if (traceNode.matched) {
-            className += ' matched';
-        } else if (traceNode.node.parseEntry.booting) {
-            className += ' booting';
+
+        if (fromPreviousTrace) {
+            className += ' forked';
         }
+
+        var html = '';
+        if (display) {
+            html = '<span class="' + className + '" data-trace-id="' + traceNode.id + '">' + display + '</span>';
+        }
+        return html;
     }
 
     var html = '';
-    if (display) {
-        html = '<span class="' + className + '" data-trace-id="' + traceNode.id + '">' + display + '</span>';
+    var forkIdx = trace.lastBackIdx;
+    for (var i = 0; i < trace.length; i++) {
+        html += traceNodeToHTML(trace[i], i <= forkIdx);
     }
-    return traceToHTML(traceNode.previous) + html;
+
+    return html;
 }
 
 function newRegExp() {
@@ -291,10 +309,9 @@ function matchIt() {
     var traceOutput = '';
     traceOutput += '<div>Steps: ' + res.traces.data.nodeCounter + ', Backreferences: ' + res.traces.data.backrefCounter + '</div>';
     traceOutput += res.traces.filter(function(trace) {
-        return trace.isEndTrace;
+        return true//trace.isEndTrace;
     }).map(function(trace) {
-        var tail = trace[trace.length - 1];
-        var html = traceToHTML(tail);
+        var html = traceToHTML(trace);
         return '<div class="traceRun"><nobr>' + html + '</nobr></div>';
     }).join('\n');
     tracesDom.innerHTML = traceOutput;
