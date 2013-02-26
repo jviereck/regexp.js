@@ -20,7 +20,7 @@
             background-color: orange;
         }
 
-        span.booting {
+        .booting {
             background-color: #C6C6EC;
         }
 
@@ -44,9 +44,36 @@
             background-color: #4FC467;
         }
 
-        #traces span.booting {
-            background-color: #C6C6EC;
+        .arrow_box {
+            position: relative;
+            background: #88b7d5;
+            border: 4px solid #c2e1f5;
         }
+        .arrow_box:after, .arrow_box:before {
+            bottom: 100%;
+            border: solid transparent;
+            content: " ";
+            height: 0;
+            width: 0;
+            position: absolute;
+            pointer-events: none;
+        }
+
+        .arrow_box:after {
+            border-color: rgba(136, 183, 213, 0);
+            border-bottom-color: #88b7d5;
+            border-width: 2px;
+            left: 50%;
+            margin-left: -2px;
+        }
+        .arrow_box:before {
+            border-color: rgba(194, 225, 245, 0);
+            border-bottom-color: #c2e1f5;
+            border-width: 8px;
+            left: 50%;
+            margin-left: -8px;
+        }
+
 
         #traces .traceRun {
             margin-bottom: 3px;
@@ -215,16 +242,16 @@ function traceToHTML(traceNode) {
             display = ''; //')';
         } else if (traceNode.node.type == 'BACK') {
             display = 'B';
-            className = 'booting';
+            className = 'arrow_box';
         } else {
             display = traceNode.node.parseEntry.bit;
         }
         if (traceNode.failed) {
-            className = 'failed';
+            className += ' failed';
         } else if (traceNode.matched) {
-            className = 'matched';
+            className += ' matched';
         } else if (traceNode.node.parseEntry.booting) {
-            className = 'booting';
+            className += ' booting';
         }
     }
 
@@ -262,7 +289,7 @@ function matchIt() {
     }
 
     var traceOutput = '';
-    traceOutput += '<div>Steps: ' + (res.traces.data.nodeCounter - 3) + ', Backreferences: ' + res.traces.data.backrefCounter + '</div>';
+    traceOutput += '<div>Steps: ' + res.traces.data.nodeCounter + ', Backreferences: ' + res.traces.data.backrefCounter + '</div>';
     traceOutput += res.traces.filter(function(trace) {
         return trace.isEndTrace;
     }).map(function(trace) {
