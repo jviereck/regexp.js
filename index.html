@@ -29,6 +29,7 @@
             display: inline-block;
             width: 20px;
             text-align: center;
+            overflow: hidden;
         }
 
         #traces span.failed {
@@ -48,6 +49,7 @@
             position: relative;
             background: #88b7d5;
             border: 4px solid #c2e1f5;
+            overflow: visible !important;
         }
         .arrow_box:after, .arrow_box:before {
             bottom: 100%;
@@ -104,6 +106,7 @@
         <td></td><td>
             <button id="newRegExpButton" onclick="newRegExp()" display="inline">New RegExp</button>
             <button id="matchItButton" onclick="matchIt()" >Match</button>
+            <button id="SaveOnHash" onclick="saveOnHash()">Share This</button>
         </td>
     </tr>
     <tr id="resultTR">
@@ -151,6 +154,27 @@ function showRegExpResult() {
     show(newRegExpButton, true);
 }
 
+function parseHash() {
+    var hash = location.hash.substring(1);
+    if (!hash) return {};
+
+    var parts = hash.split('&');
+    var keys = {};
+    parts.forEach(function(part) {
+        var splits = part.split('=');
+        keys[splits[0]] = decodeURIComponent(splits[1]);
+    });
+    return keys;
+}
+
+function saveOnHash() {
+    var regexp = regExpDom.value;
+    var input = editor.getValue();
+    location.hash = 'regexp=' + encodeURIComponent(regexp) + '&' + 'input=' + encodeURIComponent(input);
+
+    alert('Stored current RegExp and input on the URL. Feel free to pass the URL to someone else for sharing.')
+}
+
 var inputDom = document.getElementById('area');
 var tracesDom = document.getElementById('traces');
 
@@ -159,6 +183,10 @@ var editor = CodeMirror.fromTextArea(inputDom, {
 });
 editor.setSize(null, '100px');
 editor._overlay = null;
+
+var hashData = parseHash();
+if ('regexp' in hashData) regExpDom.value = hashData.regexp;
+if ('input' in hashData) editor.setValue(hashData.input);
 
 function makeOverlay(pos) {
     return {token: function(stream) {
