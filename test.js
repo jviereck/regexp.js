@@ -40,11 +40,12 @@ function assertEndState(endState, lastIdx, matches) {
             return fail('State lastIdx does not match expected one');
         }
 
-        if (Object.keys(endState.matches).length !== Object.keys(matches).length) {
+        // -2 as there are two more properties on endState.match: index and input.
+        if (Object.keys(endState.matches).length  - 2 !== Object.keys(matches).length) {
             return fail('Matches number does not match');
         }
 
-        for (var i in endState.matches) {
+        for (var i in matches) {
             if (matches[i] !== endState.matches[i]) {
                 return fail('Expected match does not match');
             }
