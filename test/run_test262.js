@@ -129,13 +129,10 @@ cd(SUITE);
 
 // === PASSING TESTS (excluding skipped test from above ;) )
 
-// runTestInDir('15.10/15.10.1/');
-// runTestInDir('15.10/15.10.2/');
-// runTestInDir('15.10/15.10.3/');
-
+runTestInDir('15.10/15.10.1/');
+runTestInDir('15.10/15.10.2/');
+runTestInDir('15.10/15.10.3/');
 runTestInDir('15.10/15.10.4/');
-
-
 
 // runTestInDir('15.10/15.10.5/');
 // runTestInDir('15.10/15.10.6/');
