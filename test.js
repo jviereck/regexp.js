@@ -76,6 +76,7 @@ assertEndState(exec('b', '(a)|(b)'), 1, ['b', undefined, 'b']);
 assertEndState(exec('a', '\\w'), 1, ['a']);
 assertEndState(exec('foo bar', '\\s\\w*'), 7, [' bar']);
 assertEndState(exec('foo bar', '\\S\\w*'), 3, ['foo']);
+assertEndState(exec('b', '[^]'), 1, ['b']);
 
 // Boundary \b and \B tests.
 assertEndState(exec('ab cd', '\\bab'), 2, ['ab']);
@@ -95,4 +96,8 @@ assertEndState(exec('abab', '((a)|(b))*'), 4, ['abab', 'b', undefined, 'b']);
 assertEndState(exec('a', '()*'), 0, ['', '']);
 assertEndState(exec('a', '(()*)*'), 0, ['', '', '']);
 assertEndState(exec('a', 'a{1}'), 1, ['a']);
+
+// Parsing of non closing brackets (not defined in standard?)
+assertEndState(exec(']', ']'), 1, [']']);
+assertEndState(exec('}', '}'), 1, ['}']);
 

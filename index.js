@@ -22,7 +22,7 @@ function RegExpJS(pattern, flags) {
         if (flags === undefined) {
             return pattern;
         } else {
-            pattern = pattern.source;
+            throw new TypeError('Cannot supply flags when constructing one RegExp from another');
         }
     }
 
@@ -46,7 +46,7 @@ function RegExpJS(pattern, flags) {
 
     // Check if the passed in flags are valid.
     if (flags && !/^(?:g|i|m)*$/.test(flags)) {
-        throw new TypeError('Invalid flags supplied to RegExp constructor ' + flags);
+        throw new SyntaxError('Invalid flags supplied to RegExp constructor ' + flags);
     } else {
         flags = flags || '';
     }
