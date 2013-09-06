@@ -71,7 +71,9 @@ var knownFailures = [
     'S15.10.2.12_A5_T4.js',
     // No global regexp.
     'S15.10.6.2_A3_T1.js',
-    'S15.10.6.2_A3_T3.js'
+    'S15.10.6.2_A3_T3.js',
+    // No way to make RegExp.prototype.source not writeable
+    // '15.10.7.1-2.js'
 ]
 
 function runTest(fullPath) {
@@ -129,12 +131,12 @@ cd(SUITE);
 
 // === PASSING TESTS (excluding skipped test from above ;) )
 
-runTestInDir('15.10/15.10.1/');
-runTestInDir('15.10/15.10.2/');
-runTestInDir('15.10/15.10.3/');
-runTestInDir('15.10/15.10.4/');
+// runTestInDir('15.10/15.10.1/');
+// runTestInDir('15.10/15.10.2/');
+// runTestInDir('15.10/15.10.3/');
+// runTestInDir('15.10/15.10.4/');
 
 // runTestInDir('15.10/15.10.5/');
 // runTestInDir('15.10/15.10.6/');
-// runTestInDir('15.10/15.10.7/');
+runTestInDir('15.10/15.10.7/');
 // runTestInDir('15.10/15.10.8/');

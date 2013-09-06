@@ -19,7 +19,15 @@ function ToString(input) {
     return input;
 }
 
+var __DIRECT_RETURN__ = {};
+
 function RegExpJS(pattern, flags) {
+    // Hack to make `RegExpJSReturn.prototype = new RegExpJS(RegExpJSReturn);`
+    // work :)
+    if (pattern === __DIRECT_RETURN__) {
+        return this;
+    }
+
     // Calling RegExp('a') is valid and should return a new object.
     if (this === undefined || this.__proto__ !== RegExpJS.prototype) {
         return new RegExpJS(pattern, flags);
@@ -40,7 +48,6 @@ function RegExpJS(pattern, flags) {
             throw new TypeError('Cannot supply flags when constructing one RegExp from another');
         }
     }
-
 
     // if (flags !== undefined) {
     //     throw new Error('Flags are not supported yet');
@@ -63,7 +70,7 @@ function RegExpJS(pattern, flags) {
 
         flags = ToString(flags);
 
-        // flags is invalid if it is made up of any other character 
+        // flags is invalid if it is made up of any other character
         // than g, i, m or consists any of these letters more than once.
         return !/^(?:g|i|m)*$/.test(flags) ||
           /(i[^i]*){2,}/.test(flags) ||
@@ -78,19 +85,46 @@ function RegExpJS(pattern, flags) {
         flags = flags || '';
     }
 
-    this.global = flags.indexOf('g') !== -1;
-    this.ignoreCase = flags.indexOf('i') !== -1;
-    this.multiline = flags.indexOf('m') !== -1;
-    this.lastIndex = 0;
+    var RegExpReturn = function RegExpJSReturnDummy() { }
+    RegExpReturn.prototype = new RegExpJS(__DIRECT_RETURN__);
 
-    this.source = pattern;
-    this.$startNode = getStartNodeFromPattern(pattern);
+    var ret = new RegExpReturn();
+
+    ret.constructor = BuildInRegExp.constructor;
+
+    function freezeIt(prop, propValue) {
+        // The `source` property
+        Object.defineProperty(ret, prop, {
+          writable: false,
+          enumerable: false,
+          configurable: false,
+          value: propValue
+        });
+
+        Object.defineProperty(RegExpReturn.prototype, prop, {
+          writable: false,
+          enumerable: false,
+          configurable: false,
+          value: propValue
+        });
+    }
+
+    freezeIt('source', pattern);
+    freezeIt('global', flags.indexOf('g') !== -1);
+    freezeIt('ignoreCase', flags.indexOf('i') !== -1);
+    freezeIt('multiline', flags.indexOf('m') !== -1);
+
+    ret.$startNode = getStartNodeFromPattern(pattern);
 
     // Don't allow to overwrite the toString property on the object.
-    Object.defineProperty(this, "toString", {
+    Object.defineProperty(ret, 'toString', {
       writable: false,
-      value: function() { return '[object RegExp]' }
+      enumerable: false,
+      configurable: false,
+      value: function() { return '[object RegExp]'; }
     });
+
+    return ret;
 }
 
 RegExpJS.prototype.execDebug = function RegExpJSExec(str) {
@@ -120,7 +154,27 @@ RegExpJS.prototype.exec = function RegExpJSExec(str) {
 
 RegExpJS.prototype.test = function RegExpJSTest(str) {
     return this.exec(str) !== null;
+};
+
+function defineProperty(prop, propValue) {
+    Object.defineProperty(RegExpJS.prototype, prop, {
+      writable: false,
+      enumerable: false,
+      configurable: false,
+      value: propValue
+    });
 }
+
+defineProperty('source', '(?:)');
+defineProperty('global', false);
+defineProperty('multiline', false);
+
+Object.defineProperty(RegExpJS.prototype, 'lastIndex', {
+  writable: true,
+  enumerable: false,
+  configurable: false,
+  value:0
+});
 
 if (typeof window !== 'undefined') {
     window.RegExpJS = RegExpJS;
