@@ -335,15 +335,15 @@ function matchIt() {
         resOutput = 'null';
     }
 
-    var traceOutput = '';
-    traceOutput += '<div>Steps: ' + res.traces.data.nodeCounter + ', Backreferences: ' + res.traces.data.backrefCounter + '</div>';
-    traceOutput += res.traces.filter(function(trace) {
-        return trace.isEndTrace;
-    }).map(function(trace) {
-        var html = traceToHTML(trace);
-        return '<div class="traceRun"><nobr>' + html + '</nobr></div>';
-    }).join('\n');
-    tracesDom.innerHTML = traceOutput;
+    // var traceOutput = '';
+    // traceOutput += '<div>Steps: ' + res.traces.data.nodeCounter + ', Backreferences: ' + res.traces.data.backrefCounter + '</div>';
+    // traceOutput += res.traces.filter(function(trace) {
+    //     return trace.isEndTrace;
+    // }).map(function(trace) {
+    //     var html = traceToHTML(trace);
+    //     return '<div class="traceRun"><nobr>' + html + '</nobr></div>';
+    // }).join('\n');
+    // tracesDom.innerHTML = traceOutput;
 
     document.getElementById('result').value = resOutput;
     document.getElementById('parseTree').value = JSON.stringify(res.parseTree, null, 4);

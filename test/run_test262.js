@@ -49,7 +49,6 @@ var burrito = require('burrito');
 
 global.RegExpJS = require('./../index').RegExpJS;
 
-
 var SUITE = 'test/test262/test/suite/ch15/'
 
 var knownFailures = [
@@ -76,7 +75,14 @@ var knownFailures = [
     // as the compared-against RegExp is replaced by the RegExpJS.
     // Wrote similar tests in project's own test suite.
     'S15.10.7_A3_T1.js',
-    'S15.10.7_A3_T2.js'
+    'S15.10.7_A3_T2.js',
+    // "RegExp.prototype is itself a RegExp" - not sure how to make this
+    // work from within JS :/
+    '15.10.6.js',
+    // "RegExpJS.prototype.constructor === RegExp" does not work by design.
+    'S15.10.6.1_A1_T1.js',
+    // `(new RegExpJS) instanceof RegExp` check fails
+    'S15.10.6.1_A1_T2.js'
 ];
 
 function runTest(fullPath) {

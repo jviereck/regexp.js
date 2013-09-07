@@ -23,7 +23,11 @@ function ToNumber(value) {
         return parseFloat(value);
     } else {
         // This is not really what the spec says.
-        return parseFloat(ToString(value));
+        var r = parseFloat(value.valueOf());
+        if (isNaN(r)) {
+            return parseFloat(ToString(value));
+        }
+        return r;
     }
 }
 
@@ -202,6 +206,14 @@ RegExpJS.prototype.execDebug = function RegExpJSExec(str) {
     }
 
     str = ToString(str);
+
+    if (i < 0 || i > str.length) {
+        this.lastIndex = 0;
+        // This makes the caller RegExpJS.prototype.exec
+        // return `null`.
+        return { matches: null };
+    }
+
     var res = exec(str, this.$startNode, i);
 
     if (res.matches && this.global === true) {
@@ -224,6 +236,9 @@ RegExpJS.prototype.exec = function RegExpJSExec(str) {
 RegExpJS.prototype.test = function RegExpJSTest(str) {
     return this.exec(str) !== null;
 };
+
+RegExpJS.prototype.exec.prototype = undefined;
+RegExpJS.prototype.test.prototype = undefined;
 
 function defineProperty(prop, propValue) {
     Object.defineProperty(RegExpJS.prototype, prop, {

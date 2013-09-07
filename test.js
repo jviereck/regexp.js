@@ -36,8 +36,6 @@ function assertEquality(a, b, msg) {
 }
 
 function assertEndState(endState, lastIdx, matches) {
-
-
     function pass() {
         console.log('PASSED TEST');
     }
@@ -47,9 +45,7 @@ function assertEndState(endState, lastIdx, matches) {
             return fail('Got match but did not expect one');
         }
 
-        if (endState.idx !== lastIdx) {
-            return fail('State lastIdx does not match expected one');
-        }
+        assertEquality(endState.idx, lastIdx, 'State lastIdx does not match expected one')
 
         // -2 as there are two more properties on endState.match: index and input.
         if (Object.keys(endState.matches).length  - 2 !== Object.keys(matches).length) {
@@ -68,6 +64,7 @@ function assertEndState(endState, lastIdx, matches) {
 }
 
 function exec(str, pattern) {
+    // console.log(pattern, str)
     var regExp = new RegExpJS(pattern);
     return regExp.execDebug(str);
 }
