@@ -28,7 +28,7 @@ function pass() {
 }
 
 function fail(msg) {
-    var out = 'FAILED TEST: ' + test_scope + ':' + msg;
+    var out = 'FAILED TEST: ' + test_scope + ': ' + msg;
     console.error(out);
     throw new Error(out);
 }
@@ -69,7 +69,7 @@ function assertEndState(endState, lastIdx, matches) {
 
 function exec(str, pattern) {
     try {
-        test_scope = 'String: ' + str.replace(/\n/g, '\\n') + ', Pattern: ' + pattern
+        test_scope = pattern + '.exec("' + str.replace(/\n/g, '\\n') + '")'
         var regExp = new RegExpJS(pattern);
         return regExp.execDebug(str);
     } catch(e) {
@@ -92,20 +92,20 @@ function assertRegExp(regExp, str) {
     }
 }
 
-assertEndState(exec('a', 'a+'), 1, ['a']);
-assertEndState(exec('da', '[cba]'), 2, ['a']);
-assertEndState(exec('abc', 'a(?:b)c'), 3, ['abc']); // Not remember
-assertEndState(exec('abdabc', 'ab(?!d)'), 5, ['ab']); // Only if not followed by
-assertEndState(exec('abdabc', 'ab(?=c)'), 5, ['ab']); // Only if not followed by
-assertEndState(exec('a ', '\\u0020'), 2, [' ']);
-assertEndState(exec('a ', '[\\u0020]'), 2, [' ']);
-assertEndState(exec('d', '[a-z]'), 1, ['d']);
-assertEndState(exec('a', '(a)|(b)'), 1, ['a', 'a', undefined]);
-assertEndState(exec('b', '(a)|(b)'), 1, ['b', undefined, 'b']);
-assertEndState(exec('a', '\\w'), 1, ['a']);
-assertEndState(exec('foo bar', '\\s\\w*'), 7, [' bar']);
-assertEndState(exec('foo bar', '\\S\\w*'), 3, ['foo']);
-assertEndState(exec('b', '[^]'), 1, ['b']);
+assertRegExp(/a+/, 'a')
+assertRegExp(/[cba]/, 'da')
+assertRegExp(/a(?:b)c/, 'abc')
+assertRegExp(/ab(?!d)/, 'abdabc')
+assertRegExp(/ab(?=c)/, 'abdabc')
+assertRegExp(/\u0020/, 'a ')
+assertRegExp(/[\u0020]/, 'a ')
+assertRegExp(/[a-z]/, 'd')
+assertRegExp(/(a)|(b)/, 'a')
+assertRegExp(/(a)|(b)/, 'b')
+assertRegExp(/\w/, 'a')
+assertRegExp(/\s\w*/, 'foo bar')
+assertRegExp(/\S\w*/, 'foo bar')
+assertRegExp(/[^]/, 'b')
 assertRegExp(/\x20/, ' ');
 assertRegExp(/[\x20-\x21]/, ' ');
 assertRegExp(/\02/, '\\02');
@@ -127,38 +127,38 @@ assertRegExp(/(a*)b\1+/, 'baaaac');
 
 
 // Test for multiple lines and `multiline` flag.
-assertEndState(exec('a\nb', 'b'), 3, ['b']);
-assertEndState(exec('a\nb', '^b'), -1);
-assertEndState(exec('a\nb', 'a$'), -1);
+assertRegExp(/b/, 'a\nb')
+assertRegExp(/^b/, 'a\nb')
+assertRegExp(/a$/, 'a\nb')
 assertEndState(exec('a\nb', /a$/m), 1, ['a']);
-assertEndState(exec('a\nb', 'b$'), 3, ['b']);
+assertRegExp(/b$/, 'a\nb')
 assertEndState(exec('a\nb', /^b/m), 3, ['b']);
 
 // Boundary \b and \B tests.
-assertEndState(exec('ab cd', '\\bab'), 2, ['ab']);
-assertEndState(exec('ab cd', 'ab\\b'), 2, ['ab']);
-assertEndState(exec('ab cd', '\\bcd'), 5, ['cd']);
-assertEndState(exec('ab cd', 'cd\\b'), 5, ['cd']);
-assertEndState(exec('hallo', '\\Blo'), 5, ['lo']);
-assertEndState(exec('hal la', 'l\\B'), 5, ['l']);
+assertRegExp(/\bab/, 'ab cd')
+assertRegExp(/ab\b/, 'ab cd')
+assertRegExp(/\bcd/, 'ab cd')
+assertRegExp(/cd\b/, 'ab cd')
+assertRegExp(/\Blo/, 'hallo')
+assertRegExp(/l\B/, 'hal la')
 
-assertEndState(exec('foo: bar', '(\\w+).*?(\\w+)'), 8, ['foo: bar', 'foo', 'bar']);
+assertRegExp(/(\w+).*?(\w+)/, 'foo: bar')
 
 // Referencing (some tests taken from the spec, see 15.10.2.8)
-assertEndState(exec('abab', 'a(.)a\\1'), 4, ['abab', 'b']);
-assertEndState(exec('baaabac', /(?=(a+))/), 1, ["", "aaa"]);
+assertRegExp(/a(.)a\1/, 'abab');
+assertRegExp(/(?=(a+))/, 'baaabac');
 // assertEndState(exec('baaabac', /(?=(a+))a*b\1/), 3, ["aba", "a"]); // FAILING
 assertRegExp(/(.*?)a(?!(a+)b\2c)\2(.*)/, 'baaabaac');
 
 // Repetition
-assertEndState(exec('abab', '((a)|(b))*'), 4, ['abab', 'b', undefined, 'b']);
-assertEndState(exec('a', '()*'), 0, ['', '']);
-assertEndState(exec('a', '(()*)*'), 0, ['', '', '']);
-assertEndState(exec('a', 'a{1}'), 1, ['a']);
+assertRegExp(/((a)|(b))*/, 'abab')
+assertRegExp(/()*/, 'a')
+assertRegExp(/(()*)*/, 'a')
+assertRegExp(/a{1}/, 'a')
 
 // Parsing of non closing brackets (not defined in standard?)
-assertEndState(exec(']', ']'), 1, [']']);
-assertEndState(exec('}', '}'), 1, ['}']);
+assertRegExp(/]/, ']')
+assertRegExp(/}/, '}')
 
 // Constructor and instanceOf tests.
 var __re = new RegExpJS(/[^a]*/);
