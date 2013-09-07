@@ -6,9 +6,61 @@ var exec = require('./lib/exec').exec;
 
 var BuildInRegExp = RegExp;
 
+// See Section 9.3. Only losely following the spec here.
+function ToNumber(value) {
+    if (value === undefined) {
+        return NaN;
+    } else if (value === null) {
+        return +0;
+    } else if (value === true) {
+        return 1;
+    } else if (value === false) {
+        return +0;
+    } else if (typeof value === 'number') {
+        return value;
+    } else if (typeof value === 'string') {
+        // This is not really what the spec says.
+        return parseFloat(value);
+    } else {
+        // This is not really what the spec says.
+        return parseFloat(ToString(value));
+    }
+}
+
+function sign(x) {
+    return x >= 0 ? 1 : -1;
+}
+
+// See Section 9.4. Only losely following the spec here.
+function ToInteger(value) {
+    var number = ToNumber(value);
+
+    if (isNaN(number)) {
+        return +0;
+    } else if (number === 0 || !isFinite(number)) {
+        return number;
+    } else {
+        return sign(number) * Math.floor(Math.abs(number));
+    }
+}
+
 // See Section 9.8. Only losely following the spec here.
 function ToString(input) {
     var t = input;
+
+    if (input === undefined) {
+        return 'undefined';
+    } else if (input === null) {
+        return 'null';
+    } else if (input === false) {
+        return 'false';
+    } else if (input === true) {
+        return 'true';
+    } else if (typeof input === 'number') {
+        return input + '';
+    } else if (typeof input === 'string') {
+        return input;
+    }
 
     // If there is a toString property that is callback.
     if (input.toString && input.toString.call) {
@@ -145,8 +197,11 @@ RegExpJS.prototype.execDebug = function RegExpJSExec(str) {
     var i = this.lastIndex;
     if (this.global === false) {
         i = 0;
+    } else {
+        i = ToInteger(i);
     }
 
+    str = ToString(str);
     var res = exec(str, this.$startNode, i);
 
     if (res.matches && this.global === true) {
@@ -156,6 +211,7 @@ RegExpJS.prototype.execDebug = function RegExpJSExec(str) {
 };
 
 RegExpJS.prototype.exec = function RegExpJSExec(str) {
+    // console.log('RegExpJS.prototype.exec', str)
     var res = this.execDebug(str);
 
     if (res.matches) {

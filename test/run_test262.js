@@ -113,7 +113,7 @@ function runTest(fullPath) {
     }
 
     if (error !== null) {
-        console.log('FAIL test: ' + fullPath + ' ' + error);
+        console.log('FAIL test: ' + fullPath + ' ' + error + ' errorStack: ' + error.stack);
     } else {
         // console.log('PASS test:' + fullPath);
     }
@@ -141,12 +141,14 @@ cd(SUITE);
 
 // === PASSING TESTS (excluding skipped test from above ;) )
 
-runTestInDir('15.10/15.10.1/');
-runTestInDir('15.10/15.10.2/');
-runTestInDir('15.10/15.10.3/');
-runTestInDir('15.10/15.10.4/');
-runTestInDir('15.10/15.10.5/');
+if (true) {
+    runTestInDir('15.10/15.10.1/');
+    runTestInDir('15.10/15.10.2/');
+    runTestInDir('15.10/15.10.3/');
+    runTestInDir('15.10/15.10.4/');
+    runTestInDir('15.10/15.10.5/');
+}
 
-// runTestInDir('15.10/15.10.6/');
+runTestInDir('15.10/15.10.6/');
 // runTestInDir('15.10/15.10.7/');
 // runTestInDir('15.10/15.10.8/');
