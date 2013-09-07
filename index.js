@@ -85,12 +85,18 @@ function RegExpJS(pattern, flags) {
         flags = flags || '';
     }
 
+    // Instead of returning the RegExp object constructed here, return
+    // a instance of RegExpReturn, which is based on the RegExpJS object.
+    // This is necessary to set the `source`, `global`, ... properties to
+    // different values then the RegExpJS ones. As these properties are not
+    // writeable (by the spec!), they cannot be set on the `this` object
+    // directly.
     var RegExpReturn = function RegExpJSReturnDummy() { }
     RegExpReturn.prototype = new RegExpJS(__DIRECT_RETURN__);
 
     var ret = new RegExpReturn();
 
-    ret.constructor = BuildInRegExp.constructor;
+    ret.constructor = BuildInRegExp;
 
     function freezeIt(prop, propValue) {
         // The `source` property
@@ -113,6 +119,13 @@ function RegExpJS(pattern, flags) {
     freezeIt('global', flags.indexOf('g') !== -1);
     freezeIt('ignoreCase', flags.indexOf('i') !== -1);
     freezeIt('multiline', flags.indexOf('m') !== -1);
+
+    Object.defineProperty(ret, 'lastIndex', {
+      writable: true,
+      enumerable: false,
+      configurable: false,
+      value: 0
+    });
 
     ret.$startNode = getStartNodeFromPattern(pattern);
 
@@ -168,6 +181,7 @@ function defineProperty(prop, propValue) {
 defineProperty('source', '(?:)');
 defineProperty('global', false);
 defineProperty('multiline', false);
+defineProperty('ignoreCase', false);
 
 Object.defineProperty(RegExpJS.prototype, 'lastIndex', {
   writable: true,

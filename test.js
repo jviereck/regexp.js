@@ -21,11 +21,22 @@ parseTests.forEach(function(input, idx) {
     }
 });
 
+function fail(msg) {
+    throw msg;
+}
+
+function assert(a, msg) {
+    if (a !== true) {
+        fail(msg);
+    }
+}
+
+function assertEquality(a, b, msg) {
+    assert(a === b, msg);
+}
 
 function assertEndState(endState, lastIdx, matches) {
-    function fail(msg) {
-        throw msg;
-    }
+
 
     function pass() {
         console.log('PASSED TEST');
@@ -101,3 +112,9 @@ assertEndState(exec('a', 'a{1}'), 1, ['a']);
 assertEndState(exec(']', ']'), 1, [']']);
 assertEndState(exec('}', '}'), 1, ['}']);
 
+// Constructor and instanceOf tests.
+var __re = new RegExpJS(/[^a]*/);
+assert(__re.constructor === RegExp, 'Constructor is BuildInRegExp');
+
+// TODO: Is the following test possible to be fixed?
+// assert(__re instanceof RegExp, 'Instanceof check for BuildInRegExp');

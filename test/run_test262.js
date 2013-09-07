@@ -47,7 +47,7 @@ var fs = require('fs');
 var path = require('path');
 var burrito = require('burrito');
 
-global.RegExp = require('./../index').RegExpJS;
+global.RegExpJS = require('./../index').RegExpJS;
 
 
 var SUITE = 'test/test262/test/suite/ch15/'
@@ -72,9 +72,12 @@ var knownFailures = [
     // No global regexp.
     'S15.10.6.2_A3_T1.js',
     'S15.10.6.2_A3_T3.js',
-    // No way to make RegExp.prototype.source not writeable
-    // '15.10.7.1-2.js'
-]
+    // Following tests are not testable with this test runner setup,
+    // as the compared-against RegExp is replaced by the RegExpJS.
+    // Wrote similar tests in project's own test suite.
+    'S15.10.7_A3_T1.js',
+    'S15.10.7_A3_T2.js'
+];
 
 function runTest(fullPath) {
     var skip = knownFailures.some(function(knownFail) {
@@ -88,13 +91,20 @@ function runTest(fullPath) {
 
     var fileContent = fs.readFileSync(fullPath, 'UTF8');
 
+    fileContent = fileContent.replace(/new RegExp/g, 'new RegExpJS');
+    fileContent = fileContent.replace(/RegExp\(/g, 'RegExpJS(');
+    fileContent = fileContent.replace(/RegExp\.prototype/g, 'RegExpJS.prototype');
+
     fileContent = burrito(fileContent, function(node) {
         if (node.name === 'regexp') {
-            node.wrap('(new RegExp(%s))');
+            node.wrap('(new RegExpJS(%s))');
         }
     });
 
     console.log('run: ' + fullPath);
+
+    // console.log(fileContent);
+
     var error = null;
     try {
         eval(fileContent);
@@ -131,12 +141,12 @@ cd(SUITE);
 
 // === PASSING TESTS (excluding skipped test from above ;) )
 
-// runTestInDir('15.10/15.10.1/');
-// runTestInDir('15.10/15.10.2/');
-// runTestInDir('15.10/15.10.3/');
-// runTestInDir('15.10/15.10.4/');
+runTestInDir('15.10/15.10.1/');
+runTestInDir('15.10/15.10.2/');
+runTestInDir('15.10/15.10.3/');
+runTestInDir('15.10/15.10.4/');
+runTestInDir('15.10/15.10.5/');
 
-// runTestInDir('15.10/15.10.5/');
 // runTestInDir('15.10/15.10.6/');
-runTestInDir('15.10/15.10.7/');
+// runTestInDir('15.10/15.10.7/');
 // runTestInDir('15.10/15.10.8/');
