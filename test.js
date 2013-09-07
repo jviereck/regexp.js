@@ -110,6 +110,13 @@ assertRegExp(/\x20/, ' ');
 assertRegExp(/[\x20-\x21]/, ' ');
 assertRegExp(/\02/, '\\02');
 assertRegExp(/(.)\01/, 'a\\1');
+assertRegExp(/\00/, '\00');  // matches ['\0'] and NOT ['\00']
+assertRegExp(/\091/, '\091');
+assertRegExp(/\71/, '9');   // because: parseInt('71',8) == 57 == '9'.charCodeAt(0)
+assertRegExp(/\0001/, '\0001');
+assertRegExp(/\91/, '91');
+assertRegExp(/(.)(.)(.)(.)(.)(.)(.)(.)(.)\91/, '12345678991');
+
 
 // From the notes at 15.10.2.5:
 assertRegExp(/a[a-z]{2,4}/, 'abcdefghi');
