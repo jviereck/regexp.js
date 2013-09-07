@@ -8,7 +8,7 @@
         .CodeMirror {
             border: 1px solid black;
         }
-        .CodeMirror .cm-matchhighlight {
+        .CodeMirror .matchhighlight {
             background-color: orange;
             background-position: bottom;
             background-repeat: repeat-x;
@@ -131,8 +131,8 @@ var regExpRendererDom = document.getElementById('regexpRenderer');
 var newRegExpButton = document.getElementById('newRegExpButton');
 var matchItButton = document.getElementById('newRegExpButton');
 
-var infoTRs = ['resultTR', 'tracesTR', 'parseTreeTR'].map(function(str) { 
-    return document.getElementById(str); 
+var infoTRs = ['resultTR', 'tracesTR', 'parseTreeTR'].map(function(str) {
+    return document.getElementById(str);
 });
 
 function show(dom, inline) {
@@ -188,30 +188,20 @@ var hashData = parseHash();
 if ('regexp' in hashData) regExpDom.value = hashData.regexp;
 if ('input' in hashData) editor.setValue(hashData.input);
 
-function makeOverlay(pos) {
-    return {token: function(stream) {
-        if (stream.pos == pos.from && pos.from !== pos.to) {
-            stream.pos += pos.to - pos.from;
-            return 'matchhighlight';
-        }
-        stream.next();
-    }};
-}
-
 var lastRes = null;
 var currentTrace = null;
 
 function renderRegExpDom(from, to) {
-    var shift = 4;
+    var shift = 6;
     var pre = '<span class="booting">';
-    var boot = '.*?';
+    var boot = '[^]*?';
     var post = '</span>'
     var regexp = pre + boot + post + regExpDom.value;
 
     if (from >= 0) {
         shift = pre.length + boot.length + post.length;
     } else {
-        shift = pre.length + 4;
+        shift = pre.length + shift;
     }
 
     var html = regexp.substring(0, from + shift) + '<span class="highlight">' + regexp.substring(from + shift, to + shift) + '</span>' + regexp.substring(to + shift);
@@ -236,9 +226,14 @@ function reflectSelection(trace) {
     renderRegExpDom(selection.from, selection.to);
 
     if (editor._overlay) {
+        editor._overlay.clear();
         editor.removeOverlay(editor._overlay);
     }
-    editor.addOverlay(editor._overlay = makeOverlay(pos))
+    var doc = editor.getDoc();
+    editor._overlay = doc.markText(
+        doc.posFromIndex(pos.from),
+        doc.posFromIndex(pos.to),
+        {className: 'matchhighlight'});
 }
 
 function reflectTreeSelection() {

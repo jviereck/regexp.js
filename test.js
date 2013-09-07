@@ -32,7 +32,7 @@ function assert(a, msg) {
 }
 
 function assertEquality(a, b, msg) {
-    assert(a === b, msg);
+    assert(a === b, msg + ': ' + a + ' -vs- ' + b);
 }
 
 function assertEndState(endState, lastIdx, matches) {
@@ -57,9 +57,7 @@ function assertEndState(endState, lastIdx, matches) {
         }
 
         for (var i in matches) {
-            if (matches[i] !== endState.matches[i]) {
-                return fail('Expected match does not match');
-            }
+            assertEquality(matches[i], endState.matches[i], 'Expected match does not match')
         }
     } else {
         if (lastIdx !== -1) {
@@ -88,6 +86,8 @@ assertEndState(exec('a', '\\w'), 1, ['a']);
 assertEndState(exec('foo bar', '\\s\\w*'), 7, [' bar']);
 assertEndState(exec('foo bar', '\\S\\w*'), 3, ['foo']);
 assertEndState(exec('b', '[^]'), 1, ['b']);
+
+assertEndState(exec('a\nb', 'b'), 3, ['b']);
 
 // Boundary \b and \B tests.
 assertEndState(exec('ab cd', '\\bab'), 2, ['ab']);
