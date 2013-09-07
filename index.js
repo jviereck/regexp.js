@@ -147,7 +147,7 @@ function RegExpJS(pattern, flags) {
     // different values then the RegExpJS ones. As these properties are not
     // writeable (by the spec!), they cannot be set on the `this` object
     // directly.
-    var RegExpReturn = function RegExpJSReturnDummy() { }
+    var RegExpReturn = function RegExpJSReturnDummy() { };
     RegExpReturn.prototype = new RegExpJS(__DIRECT_RETURN__);
 
     var ret = new RegExpReturn();
@@ -214,7 +214,7 @@ RegExpJS.prototype.execDebug = function RegExpJSExec(str) {
         return { matches: null };
     }
 
-    var res = exec(str, this.$startNode, i);
+    var res = exec(str, this.$startNode, i, this.multiline);
 
     if (res.matches && this.global === true) {
         this.lastIndex = res.idx;

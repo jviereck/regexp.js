@@ -21,8 +21,16 @@ parseTests.forEach(function(input, idx) {
     }
 });
 
+var test_scope = '';
+
+function pass() {
+    console.log('PASSED TEST:', test_scope);
+}
+
 function fail(msg) {
-    throw msg;
+    var out = 'FAILED TEST: ' + test_scope + ':' + msg;
+    console.error(out);
+    throw new Error(out);
 }
 
 function assert(a, msg) {
@@ -36,11 +44,9 @@ function assertEquality(a, b, msg) {
 }
 
 function assertEndState(endState, lastIdx, matches) {
-    function pass() {
-        console.log('PASSED TEST');
-    }
 
-    if (endState) {
+
+    if (endState && endState.matches) {
         if (lastIdx === -1) {
             return fail('Got match but did not expect one');
         }
@@ -64,7 +70,7 @@ function assertEndState(endState, lastIdx, matches) {
 }
 
 function exec(str, pattern) {
-    // console.log(pattern, str)
+    test_scope = 'String: ' + str.replace(/\n/g, '\\n') + ', Pattern: ' + pattern
     var regExp = new RegExpJS(pattern);
     return regExp.execDebug(str);
 }
@@ -84,7 +90,13 @@ assertEndState(exec('foo bar', '\\s\\w*'), 7, [' bar']);
 assertEndState(exec('foo bar', '\\S\\w*'), 3, ['foo']);
 assertEndState(exec('b', '[^]'), 1, ['b']);
 
+// Test for multiple lines and `multiline` flag.
 assertEndState(exec('a\nb', 'b'), 3, ['b']);
+assertEndState(exec('a\nb', '^b'), -1);
+assertEndState(exec('a\nb', 'a$'), -1);
+assertEndState(exec('a\nb', /a$/m), 1, ['a']);
+assertEndState(exec('a\nb', 'b$'), 3, ['b']);
+assertEndState(exec('a\nb', /^b/m), 3, ['b']);
 
 // Boundary \b and \B tests.
 assertEndState(exec('ab cd', '\\bab'), 2, ['ab']);
