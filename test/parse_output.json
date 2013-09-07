@@ -424,6 +424,96 @@
     "type": "alternative",
     "terms": [
       {
+        "type": "escape",
+        "name": "octal",
+        "value": "1",
+        "from": 0,
+        "to": 2,
+        "bit": "\\1"
+      }
+    ],
+    "from": 0,
+    "to": 2,
+    "bit": "\\1",
+    "lastMatchIdx": 0
+  },
+  {
+    "type": "alternative",
+    "terms": [
+      {
+        "type": "group",
+        "behavior": "normal",
+        "disjunction": {
+          "type": "alternative",
+          "terms": [
+            {
+              "type": "escape",
+              "name": "octal",
+              "value": "1",
+              "from": 1,
+              "to": 3,
+              "bit": "\\1"
+            }
+          ],
+          "from": 1,
+          "to": 3,
+          "bit": "\\1"
+        },
+        "from": 0,
+        "to": 4,
+        "bit": "(\\1)",
+        "matchIdx": 1,
+        "lastMatchIdx": 1
+      }
+    ],
+    "from": 0,
+    "to": 4,
+    "bit": "(\\1)",
+    "lastMatchIdx": 1
+  },
+  {
+    "type": "alternative",
+    "terms": [
+      {
+        "type": "group",
+        "behavior": "normal",
+        "disjunction": {
+          "type": "alternative",
+          "terms": [
+            {
+              "type": "dot",
+              "from": 1,
+              "to": 2,
+              "bit": "."
+            }
+          ],
+          "from": 1,
+          "to": 2,
+          "bit": "."
+        },
+        "from": 0,
+        "to": 3,
+        "bit": "(.)",
+        "matchIdx": 1,
+        "lastMatchIdx": 1
+      },
+      {
+        "type": "ref",
+        "ref": 1,
+        "from": 3,
+        "to": 5,
+        "bit": "\\1"
+      }
+    ],
+    "from": 0,
+    "to": 5,
+    "bit": "(.)\\1",
+    "lastMatchIdx": 1
+  },
+  {
+    "type": "alternative",
+    "terms": [
+      {
         "type": "group",
         "behavior": "normal",
         "disjunction": {

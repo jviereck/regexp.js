@@ -15,7 +15,7 @@ parseTests.forEach(function(input, idx) {
     var res = parseResult[idx];
 
     if (JSON.stringify(par) !== JSON.stringify(res)) {
-        throw 'Failure parsing string ' + input + ':' + JSON.stringify(par) + '\n' + JSON.stringify(res);
+        throw new Error('Failure parsing string ' + input + ':' + JSON.stringify(par) + '\n' + JSON.stringify(res));
     } else {
         console.log('PASSED TEST: ' + input);
     }
@@ -44,8 +44,6 @@ function assertEquality(a, b, msg) {
 }
 
 function assertEndState(endState, lastIdx, matches) {
-
-
     if (endState && endState.matches) {
         if (lastIdx === -1) {
             return fail('Got match but did not expect one');
@@ -70,9 +68,28 @@ function assertEndState(endState, lastIdx, matches) {
 }
 
 function exec(str, pattern) {
-    test_scope = 'String: ' + str.replace(/\n/g, '\\n') + ', Pattern: ' + pattern
-    var regExp = new RegExpJS(pattern);
-    return regExp.execDebug(str);
+    try {
+        test_scope = 'String: ' + str.replace(/\n/g, '\\n') + ', Pattern: ' + pattern
+        var regExp = new RegExpJS(pattern);
+        return regExp.execDebug(str);
+    } catch(e) {
+        fail(e);
+        return null;
+    }
+}
+
+function assertRegExp(regExp, str) {
+    var res = exec(str, regExp);
+    actualResult = regExp.exec(str);
+
+    // console.log(res.matches, actualResult);
+
+    if (actualResult) {
+        var matches = actualResult.slice(0, actualResult.length);
+        assertEndState(res, actualResult.index + actualResult[0].length, matches);
+    } else {
+        assertEndState(res, -1);
+    }
 }
 
 assertEndState(exec('a', 'a+'), 1, ['a']);
@@ -89,6 +106,18 @@ assertEndState(exec('a', '\\w'), 1, ['a']);
 assertEndState(exec('foo bar', '\\s\\w*'), 7, [' bar']);
 assertEndState(exec('foo bar', '\\S\\w*'), 3, ['foo']);
 assertEndState(exec('b', '[^]'), 1, ['b']);
+assertRegExp(/\x20/, ' ');
+assertRegExp(/[\x20-\x21]/, ' ');
+assertRegExp(/\02/, '\\02');
+assertRegExp(/(.)\01/, 'a\\1');
+
+// From the notes at 15.10.2.5:
+assertRegExp(/a[a-z]{2,4}/, 'abcdefghi');
+assertRegExp(/a[a-z]{2,4}?/, 'abcdefghi');
+assertRegExp(/(aa|aabaac|ba|b|c)*/, 'aabaac');
+assertRegExp(/(a*)b\1+/, 'baaaac');
+// assertRegExp(/(z)((a+)?(b+)?(c))*/, 'zaacbbbcac'); // FAILING
+
 
 // Test for multiple lines and `multiline` flag.
 assertEndState(exec('a\nb', 'b'), 3, ['b']);
@@ -108,8 +137,11 @@ assertEndState(exec('hal la', 'l\\B'), 5, ['l']);
 
 assertEndState(exec('foo: bar', '(\\w+).*?(\\w+)'), 8, ['foo: bar', 'foo', 'bar']);
 
-// Referencing
+// Referencing (some tests taken from the spec, see 15.10.2.8)
 assertEndState(exec('abab', 'a(.)a\\1'), 4, ['abab', 'b']);
+assertEndState(exec('baaabac', /(?=(a+))/), 1, ["", "aaa"]);
+// assertEndState(exec('baaabac', /(?=(a+))a*b\1/), 3, ["aba", "a"]); // FAILING
+assertRegExp(/(.*?)a(?!(a+)b\2c)\2(.*)/, 'baaabaac');
 
 // Repetition
 assertEndState(exec('abab', '((a)|(b))*'), 4, ['abab', 'b', undefined, 'b']);
