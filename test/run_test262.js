@@ -62,15 +62,6 @@ var knownFailures = [
     '15.10.2.8_A3_T18.js',
     // Prevent prototype assignment not possible in JS.
     'S15.10.5.1_A4.js',
-    // Not supported global flag.
-    'S15.10.2.12_A1_T5.js',
-    'S15.10.2.12_A2_T5.js',
-    'S15.10.2.12_A3_T5.js',
-    'S15.10.2.12_A4_T5.js',
-    'S15.10.2.12_A5_T4.js',
-    // No global regexp.
-    'S15.10.6.2_A3_T1.js',
-    'S15.10.6.2_A3_T3.js',
     // Following tests are not testable with this test runner setup,
     // as the compared-against RegExp is replaced by the RegExpJS.
     // Wrote similar tests in project's own test suite.
@@ -81,9 +72,13 @@ var knownFailures = [
     '15.10.6.js',
     // "RegExpJS.prototype.constructor === RegExp" does not work by design.
     'S15.10.6.1_A1_T1.js',
-    // `(new RegExpJS) instanceof RegExp` check fails
+    // `(new RegExpJS) instanceof RegExp` check fails.
     'S15.10.6.1_A1_T2.js'
 ];
+
+var skipped = 0;
+var passed = 0;
+var failed = 0;
 
 function runTest(fullPath) {
     var skip = knownFailures.some(function(knownFail) {
@@ -92,6 +87,7 @@ function runTest(fullPath) {
 
     if (skip) {
         console.log('SKIP test: ' + fullPath);
+        skipped ++;
         return;
     }
 
@@ -120,7 +116,9 @@ function runTest(fullPath) {
 
     if (error !== null) {
         console.log('FAIL test: ' + fullPath + ' ' + error + ' errorStack: ' + error.stack);
+        failed ++;
     } else {
+        passed ++;
         // console.log('PASS test:' + fullPath);
     }
 }
@@ -138,7 +136,9 @@ function runTest(fullPath) {
 
 function runTestInDir(dir) {
     ls('-R', dir).forEach(function(filePath) {
+        // Only run .js files.
         if (filePath.indexOf('.js') !== filePath.length - 3) return;
+
         runTest(dir + filePath);
     });
 }
@@ -153,8 +153,10 @@ if (true) {
     runTestInDir('15.10/15.10.3/');
     runTestInDir('15.10/15.10.4/');
     runTestInDir('15.10/15.10.5/');
+    runTestInDir('15.10/15.10.6/');
+    runTestInDir('15.10/15.10.7/');
 }
 
-runTestInDir('15.10/15.10.6/');
-// runTestInDir('15.10/15.10.7/');
-// runTestInDir('15.10/15.10.8/');
+console.log('------------------------------------------------------')
+console.log('All tests executed: pass=%d, fail=%d, skip=%d', passed, failed, skipped)
+console.log('------------------------------------------------------')
