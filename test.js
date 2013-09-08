@@ -158,6 +158,10 @@ assertRegExp(/()*/, 'a');
 assertRegExp(/(()*)*/, 'a');
 assertRegExp(/a{1}/, 'a');
 
+// ignoreCase tests
+assertRegExp(/a/i, 'a');
+assertRegExp(/a/i, 'A');
+
 // Parsing of non closing brackets (not defined in standard?)
 assertRegExp(/]/, ']');
 assertRegExp(/}/, '}');

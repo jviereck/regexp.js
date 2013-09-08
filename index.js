@@ -3,6 +3,7 @@
 
 var getStartNodeFromPattern = require('./lib/exec').getStartNodeFromPattern;
 var exec = require('./lib/exec').exec;
+var canonicalize = require('./lib/utils').canonicalize;
 
 var BuildInRegExp = RegExp;
 
@@ -72,7 +73,7 @@ function ToString(input) {
     } else if (t.valueOf) {
         input = t.valueOf();
     }
-    return input;
+    return ToString(input);
 }
 
 var __DIRECT_RETURN__ = {};
@@ -183,7 +184,7 @@ function RegExpJS(pattern, flags) {
       value: 0
     });
 
-    ret.$startNode = getStartNodeFromPattern(pattern);
+    ret.$startNode = getStartNodeFromPattern(pattern, ret.ignoreCase);
 
     // Don't allow to overwrite the toString property on the object.
     Object.defineProperty(ret, 'toString', {
@@ -214,7 +215,7 @@ RegExpJS.prototype.execDebug = function RegExpJSExec(str) {
         return { matches: null };
     }
 
-    var res = exec(str, this.$startNode, i, this.multiline);
+    var res = exec(str, this.$startNode, i, this.multiline, this.ignoreCase);
 
     if (res.matches && this.global === true) {
         this.lastIndex = res.idx;
