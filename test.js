@@ -142,11 +142,14 @@ assertRegExp(/\Blo/, 'hallo');
 assertRegExp(/l\B/, 'hal la');
 
 assertRegExp(/(\w+).*?(\w+)/, 'foo: bar');
+assertRegExp(/(?:(a+))a*b\1/, 'baaabac');
+assertRegExp(/(?=(a+?))/, 'baaabac');
+assertRegExp(/(?!(a{2,}))b/, 'baaabac');
 
 // Referencing (some tests taken from the spec, see 15.10.2.8)
 assertRegExp(/a(.)a\1/, 'abab');
 assertRegExp(/(?=(a+))/, 'baaabac');
-// assertEndState(exec('baaabac', /(?=(a+))a*b\1/), 3, ["aba", "a"]); // FAILING
+assertRegExp(/(?=(a+))a*b\1/, 'baaabac');
 assertRegExp(/(.*?)a(?!(a+)b\2c)\2(.*)/, 'baaabaac');
 
 // Repetition

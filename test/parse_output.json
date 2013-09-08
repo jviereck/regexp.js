@@ -572,7 +572,7 @@
       },
       {
         "type": "group",
-        "behavior": "onlyIf",
+        "behavior": "lookahead",
         "disjunction": {
           "type": "alternative",
           "terms": [
@@ -610,7 +610,7 @@
       },
       {
         "type": "group",
-        "behavior": "onlyIfNot",
+        "behavior": "negativeLookahead",
         "disjunction": {
           "type": "alternative",
           "terms": [

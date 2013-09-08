@@ -349,17 +349,11 @@ function matchIt() {
     document.getElementById('parseTree').value = JSON.stringify(res.parseTree, null, 4);
 }
 
-// runTests();
 showRegExpInput();
 
 window.onload = function() {
     matchIt();
 }
-
-var reg = new RegExpJS(/\w/g);
-var str = 'abc';
-reg.lastIndex
-reg.exec(str)
 
 </script>
 </html>
