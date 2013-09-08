@@ -145,6 +145,8 @@ assertRegExp(/(\w+).*?(\w+)/, 'foo: bar');
 assertRegExp(/(?:(a+))a*b\1/, 'baaabac');
 assertRegExp(/(?=(a+?))/, 'baaabac');
 assertRegExp(/(?!(a{2,}))b/, 'baaabac');
+assertRegExp(/(q?)b\1/, 'b');
+assertRegExp(/(q)?b\1/, 'b');
 
 // Referencing (some tests taken from the spec, see 15.10.2.8)
 assertRegExp(/a(.)a\1/, 'abab');
@@ -188,3 +190,83 @@ assert(__re.constructor === RegExp, 'Constructor is BuildInRegExp');
 
 // TODO: Is the following test possible to be fixed?
 // assert(__re instanceof RegExp, 'Instanceof check for BuildInRegExp');
+
+// ---
+
+var Range = require('./lib/jit').Range;
+var RangeList = require('./lib/jit').RangeList;
+
+function assertIntersect(a, b, c, d, shouldIntersect) {
+    r = new Range(a, b);
+    p = new Range(c, d);
+    assert(r.intersect(p) == shouldIntersect, 'part 1');
+
+    r = new Range(c, d);
+    p = new Range(a, b);
+    assert(r.intersect(p) == shouldIntersect, 'part 2');
+}
+
+assertIntersect(0, 4, 5, 7, true);
+assertIntersect(0, 3, 5, 7, false);
+assertIntersect(0, 6, 5, 7, true);
+assertIntersect(5, 5, 5, 7, true);
+assertIntersect(6, 6, 5, 7, true);
+assertIntersect(6, 8, 5, 7, true);
+assertIntersect(6, 9, 5, 7, true);
+assertIntersect(8, 9, 5, 7, true);
+assertIntersect(9, 9, 5, 7, false);
+assertIntersect(9, 9, 5, 7, false);
+
+r = new RangeList(false);
+r.push(new Range(6, 8));
+r.push(new Range(0, 4));
+r.simplify();
+assert(r.length === 2);
+assert(r.list[0].min === 0);
+assert(r.list[1].min === 6);
+
+r = new RangeList(false);
+r.push(new Range(0, 4));
+r.push(new Range(6, 8));
+r.simplify();
+assert(r.length === 2);
+
+r = new RangeList(false);
+r.push(new Range(0, 4));
+r.push(new Range(5, 8));
+r.simplify();
+assert(r.length === 1);  // Got merged
+assert(r.list[0].min === 0);
+assert(r.list[0].max === 9);
+
+r = new RangeList(false);
+r.push(new Range(0, 4));
+r.push(new Range(5, 8));
+r.push(new Range(1, 8));
+r.simplify();
+assert(r.length === 1);  // Got merged
+assert(r.list[0].min === 0);
+assert(r.list[0].max === 9);
+
+r = new RangeList(false);
+r.push(new Range(0, 4));
+r.push(new Range(5, 8));
+r.push(new Range(9, 9));
+r.simplify();
+assert(r.length === 1);  // Got merged
+assert(r.list[0].min === 0);
+assert(r.list[0].max === 10);
+
+r = new RangeList(false);
+r.push(new Range(9, 9));
+r.push(new Range(0, 4));
+r.push(new Range(5, 7));
+r.simplify();
+assert(r.length === 2);  // Got merged
+assert(r.list[0].min === 0);
+assert(r.list[0].max === 8);
+assert(r.list[1].min === 9);
+assert(r.list[1].max === 10);
+
+
+
