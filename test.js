@@ -68,14 +68,14 @@ function assertEndState(endState, lastIdx, matches) {
 }
 
 function exec(str, pattern) {
-    try {
+    // try {
         test_scope = pattern + '.exec("' + str.replace(/\n/g, '\\n') + '")'
         var regExp = new RegExpJS(pattern);
         return regExp.execDebug(str);
-    } catch(e) {
-        fail(e);
-        return null;
-    }
+    // } catch(e) {
+    //     fail(e);
+    //     return null;
+    // }
 }
 
 function assertRegExp(regExp, str) {
@@ -161,6 +161,22 @@ assertRegExp(/a{1}/, 'a');
 // ignoreCase tests
 assertRegExp(/a/i, 'a');
 assertRegExp(/a/i, 'A');
+assertRegExp(/[a]/i, 'A');
+assertRegExp(/[a]/i, 'a');
+assertRegExp(/[ab]/i, 'Ab');
+assertRegExp(/[ab]/i, 'aB');
+assertRegExp(/[a-}]/i, 'A');
+assertRegExp(/[a-}]/i, 'a');
+assertRegExp(/[a-a]/i, 'A');
+assertRegExp(/[a-a]/i, 'a');
+assertRegExp(/[a-}]/i, '\\');  // Does not match.
+assertRegExp(/γ/i, 'Γ');
+assertRegExp(/γ/i, 'γ');
+assertRegExp(/[Α-Ω]/i, 'Γ');
+assertRegExp(/[Α-Ω]/i, 'γ');
+assertRegExp(/[α-ω]/i, 'Γ');
+assertRegExp(/[α-ω]/i, 'γ');
+
 
 // Parsing of non closing brackets (not defined in standard?)
 assertRegExp(/]/, ']');
