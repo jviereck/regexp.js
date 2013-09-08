@@ -92,27 +92,27 @@ function assertRegExp(regExp, str) {
     }
 }
 
-assertRegExp(/a+/, 'a')
-assertRegExp(/[cba]/, 'da')
-assertRegExp(/a(?:b)c/, 'abc')
-assertRegExp(/ab(?!d)/, 'abdabc')
-assertRegExp(/ab(?=c)/, 'abdabc')
-assertRegExp(/\u0020/, 'a ')
-assertRegExp(/[\u0020]/, 'a ')
-assertRegExp(/[a-z]/, 'd')
-assertRegExp(/(a)|(b)/, 'a')
-assertRegExp(/(a)|(b)/, 'b')
-assertRegExp(/\w/, 'a')
-assertRegExp(/\s\w*/, 'foo bar')
-assertRegExp(/\S\w*/, 'foo bar')
-assertRegExp(/[^]/, 'b')
+assertRegExp(/a+/, 'a');
+assertRegExp(/[cba]/, 'da');
+assertRegExp(/a(?:b)c/, 'abc');
+assertRegExp(/ab(?!d)/, 'abdabc');
+assertRegExp(/ab(?=c)/, 'abdabc');
+assertRegExp(/\u0020/, 'a ');
+assertRegExp(/[\u0020]/, 'a ');
+assertRegExp(/[a-z]/, 'd');
+assertRegExp(/(a)|(b)/, 'a');
+assertRegExp(/(a)|(b)/, 'b');
+assertRegExp(/\w/, 'a');
+assertRegExp(/\s\w*/, 'foo bar');
+assertRegExp(/\S\w*/, 'foo bar');
+assertRegExp(/[^]/, 'b');
 assertRegExp(/\x20/, ' ');
 assertRegExp(/[\x20-\x21]/, ' ');
 assertRegExp(/\02/, '\\02');
 assertRegExp(/(.)\01/, 'a\\1');
 assertRegExp(/\00/, '\00');  // matches ['\0'] and NOT ['\00']
 assertRegExp(/\091/, '\091');
-assertRegExp(/\71/, '9');   // because: parseInt('71',8) == 57 == '9'.charCodeAt(0)
+assertRegExp(/\71/, '9');   // because: parseInt('71',8) == 57 == '9'.charCodeAt(0);
 assertRegExp(/\0001/, '\0001');
 assertRegExp(/\91/, '91');
 assertRegExp(/(.)(.)(.)(.)(.)(.)(.)(.)(.)\91/, '12345678991');
@@ -123,26 +123,25 @@ assertRegExp(/a[a-z]{2,4}/, 'abcdefghi');
 assertRegExp(/a[a-z]{2,4}?/, 'abcdefghi');
 assertRegExp(/(aa|aabaac|ba|b|c)*/, 'aabaac');
 assertRegExp(/(a*)b\1+/, 'baaaac');
-// assertRegExp(/(z)((a+)?(b+)?(c))*/, 'zaacbbbcac'); // FAILING
-
+assertRegExp(/(z)((a+)?(b+)?(c))*/, 'zaacbbbcac');
 
 // Test for multiple lines and `multiline` flag.
-assertRegExp(/b/, 'a\nb')
-assertRegExp(/^b/, 'a\nb')
-assertRegExp(/a$/, 'a\nb')
+assertRegExp(/b/, 'a\nb');
+assertRegExp(/^b/, 'a\nb');
+assertRegExp(/a$/, 'a\nb');
 assertEndState(exec('a\nb', /a$/m), 1, ['a']);
-assertRegExp(/b$/, 'a\nb')
+assertRegExp(/b$/, 'a\nb');
 assertEndState(exec('a\nb', /^b/m), 3, ['b']);
 
 // Boundary \b and \B tests.
-assertRegExp(/\bab/, 'ab cd')
-assertRegExp(/ab\b/, 'ab cd')
-assertRegExp(/\bcd/, 'ab cd')
-assertRegExp(/cd\b/, 'ab cd')
-assertRegExp(/\Blo/, 'hallo')
-assertRegExp(/l\B/, 'hal la')
+assertRegExp(/\bab/, 'ab cd');
+assertRegExp(/ab\b/, 'ab cd');
+assertRegExp(/\bcd/, 'ab cd');
+assertRegExp(/cd\b/, 'ab cd');
+assertRegExp(/\Blo/, 'hallo');
+assertRegExp(/l\B/, 'hal la');
 
-assertRegExp(/(\w+).*?(\w+)/, 'foo: bar')
+assertRegExp(/(\w+).*?(\w+)/, 'foo: bar');
 
 // Referencing (some tests taken from the spec, see 15.10.2.8)
 assertRegExp(/a(.)a\1/, 'abab');
@@ -151,14 +150,14 @@ assertRegExp(/(?=(a+))/, 'baaabac');
 assertRegExp(/(.*?)a(?!(a+)b\2c)\2(.*)/, 'baaabaac');
 
 // Repetition
-assertRegExp(/((a)|(b))*/, 'abab')
-assertRegExp(/()*/, 'a')
-assertRegExp(/(()*)*/, 'a')
-assertRegExp(/a{1}/, 'a')
+assertRegExp(/((a)|(b))*/, 'abab');
+assertRegExp(/()*/, 'a');
+assertRegExp(/(()*)*/, 'a');
+assertRegExp(/a{1}/, 'a');
 
 // Parsing of non closing brackets (not defined in standard?)
-assertRegExp(/]/, ']')
-assertRegExp(/}/, '}')
+assertRegExp(/]/, ']');
+assertRegExp(/}/, '}');
 
 // Constructor and instanceOf tests.
 var __re = new RegExpJS(/[^a]*/);
