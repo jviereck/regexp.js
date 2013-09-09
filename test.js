@@ -197,6 +197,8 @@ var Range = require('./lib/jit').Range;
 var RangeList = require('./lib/jit').RangeList;
 
 function assertIntersect(a, b, c, d, shouldIntersect, ignoreEdge) {
+    test_scope = 'hasIntersect(' + a + ', ' + b + ', ' + c + ', ' + d +')';
+
     r = new Range(a, b);
     p = new Range(c, d);
     assert(r.hasIntersect(p, ignoreEdge) == shouldIntersect, 'part 1');
@@ -206,20 +208,16 @@ function assertIntersect(a, b, c, d, shouldIntersect, ignoreEdge) {
     assert(r.hasIntersect(p, ignoreEdge) == shouldIntersect, 'part 2');
 }
 
-assertIntersect(0, 5, 5, 8, true);
+assertIntersect(0, 5, 5, 8, false);
 assertIntersect(0, 4, 5, 8, false);
 assertIntersect(0, 6, 5, 8, true);
 assertIntersect(5, 6, 5, 8, true);
 assertIntersect(6, 7, 5, 8, true);
 assertIntersect(6, 9, 5, 8, true);
 assertIntersect(6, 10, 5, 8, true);
-assertIntersect(8, 10, 5, 8, true);
+assertIntersect(8, 10, 5, 8, false);
 assertIntersect(9, 10, 5, 8, false);
 assertIntersect(9, 10, 5, 8, false);
-
-assertIntersect(0, 3, 3, 8, false, true);
-assertIntersect(0, 4, 3, 8, true, true);
-assertIntersect(0, 10, 3, 8, true, true);
 
 r = new RangeList(false);
 r.push(new Range(6, 8));
@@ -236,7 +234,7 @@ r.simplify();
 assert(r.length === 2);
 
 r = new RangeList(false);
-r.push(new Range(0, 4));
+r.push(new Range(0, 5));
 r.push(new Range(5, 8));
 r.simplify();
 assert(r.length === 1);  // Got merged
@@ -255,11 +253,11 @@ assert(r.list[0].max === 8);
 r = new RangeList(false);
 r.push(new Range(0, 5));
 r.push(new Range(5, 9));
-r.push(new Range(9, 9));
+r.push(new Range(9, 10));
 r.simplify();
 assert(r.length === 1);  // Got merged
 assert(r.list[0].min === 0);
-assert(r.list[0].max === 9);
+assert(r.list[0].max === 10);
 
 r = new RangeList(false);
 r.push(new Range(9, 10));
