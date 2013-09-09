@@ -218,6 +218,7 @@ assertIntersect(6, 10, 5, 8, true);
 assertIntersect(8, 10, 5, 8, false);
 assertIntersect(9, 10, 5, 8, false);
 assertIntersect(9, 10, 5, 8, false);
+assertIntersect(3, 7, 3, 7, true);
 
 r = new RangeList(false);
 r.push(new Range(6, 8));
