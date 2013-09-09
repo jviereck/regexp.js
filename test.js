@@ -193,8 +193,8 @@ assert(__re.constructor === RegExp, 'Constructor is BuildInRegExp');
 
 // ---
 
-var Range = require('./lib/jit').Range;
-var RangeList = require('./lib/jit').RangeList;
+var Range = require('./lib/utils').Range;
+var RangeList = require('./lib/utils').RangeList;
 
 function assertIntersect(a, b, c, d, shouldIntersect, ignoreEdge) {
     test_scope = 'hasIntersect(' + a + ', ' + b + ', ' + c + ', ' + d +')';
@@ -271,5 +271,43 @@ assert(r.list[0].max === 7);
 assert(r.list[1].min === 9);
 assert(r.list[1].max === 10);
 
+// --- intersectWith tests
 
+a = new RangeList(false);
+a.push(new Range(0,  5));
+a.push(new Range(5,  10));
+a.push(new Range(10, 15));
+a.push(new Range(15, 20));
+
+r = new RangeList(false);
+r.push(new Range(0, 15));
+res = a.intersectWith(r);
+assert(res.length === 3);
+
+r = new RangeList(false);
+r.push(new Range(0, 15));
+res = a.intersectWith(r, true);
+assert(res.length === 1);
+
+r = new RangeList(false);
+r.push(new Range(5, 15));
+res = a.intersectWith(r);
+assert(res.length === 2);
+
+r = new RangeList(false);
+r.push(new Range(5, 15));
+res = a.intersectWith(r, true);
+assert(res.length === 2);
+
+r = new RangeList(false);
+r.push(new Range(0, 10));
+r.push(new Range(15, 20));
+res = a.intersectWith(r);
+assert(res.length === 3);
+
+r = new RangeList(false);
+r.push(new Range(0, 10));
+r.push(new Range(15, 20));
+res = a.intersectWith(r, true);
+assert(res.length === 1);
 

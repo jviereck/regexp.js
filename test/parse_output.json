@@ -3,6 +3,29 @@
     "type": "alternative",
     "terms": [
       {
+        "type": "assertion",
+        "sub": "start",
+        "from": 0,
+        "to": 1,
+        "bit": "^"
+      },
+      {
+        "type": "character",
+        "char": "a",
+        "from": 1,
+        "to": 2,
+        "bit": "a"
+      }
+    ],
+    "from": 0,
+    "to": 2,
+    "bit": "^a",
+    "lastMatchIdx": 0
+  },
+  {
+    "type": "alternative",
+    "terms": [
+      {
         "type": "character",
         "char": "a",
         "from": 0,
