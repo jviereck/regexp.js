@@ -1,6 +1,7 @@
 // Whole-script strict mode syntax
 "use strict";
 
+var JIT = require('./lib/jit');
 var getStartNodeFromPattern = require('./lib/exec').getStartNodeFromPattern;
 var exec = require('./lib/exec').exec;
 var canonicalize = require('./lib/utils').canonicalize;
@@ -264,6 +265,9 @@ Object.defineProperty(RegExpJS.prototype, 'lastIndex', {
 
 if (typeof window !== 'undefined') {
     window.RegExpJS = RegExpJS;
+    if (!window.require) {
+        window.require = require;
+    }
 }
 
 exports.RegExpJS = RegExpJS;

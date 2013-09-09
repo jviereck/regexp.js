@@ -196,37 +196,41 @@ assert(__re.constructor === RegExp, 'Constructor is BuildInRegExp');
 var Range = require('./lib/jit').Range;
 var RangeList = require('./lib/jit').RangeList;
 
-function assertIntersect(a, b, c, d, shouldIntersect) {
+function assertIntersect(a, b, c, d, shouldIntersect, ignoreEdge) {
     r = new Range(a, b);
     p = new Range(c, d);
-    assert(r.intersect(p) == shouldIntersect, 'part 1');
+    assert(r.hasIntersect(p, ignoreEdge) == shouldIntersect, 'part 1');
 
     r = new Range(c, d);
     p = new Range(a, b);
-    assert(r.intersect(p) == shouldIntersect, 'part 2');
+    assert(r.hasIntersect(p, ignoreEdge) == shouldIntersect, 'part 2');
 }
 
-assertIntersect(0, 4, 5, 7, true);
-assertIntersect(0, 3, 5, 7, false);
-assertIntersect(0, 6, 5, 7, true);
-assertIntersect(5, 5, 5, 7, true);
-assertIntersect(6, 6, 5, 7, true);
-assertIntersect(6, 8, 5, 7, true);
-assertIntersect(6, 9, 5, 7, true);
-assertIntersect(8, 9, 5, 7, true);
-assertIntersect(9, 9, 5, 7, false);
-assertIntersect(9, 9, 5, 7, false);
+assertIntersect(0, 5, 5, 8, true);
+assertIntersect(0, 4, 5, 8, false);
+assertIntersect(0, 6, 5, 8, true);
+assertIntersect(5, 6, 5, 8, true);
+assertIntersect(6, 7, 5, 8, true);
+assertIntersect(6, 9, 5, 8, true);
+assertIntersect(6, 10, 5, 8, true);
+assertIntersect(8, 10, 5, 8, true);
+assertIntersect(9, 10, 5, 8, false);
+assertIntersect(9, 10, 5, 8, false);
+
+assertIntersect(0, 3, 3, 8, false, true);
+assertIntersect(0, 4, 3, 8, true, true);
+assertIntersect(0, 10, 3, 8, true, true);
 
 r = new RangeList(false);
 r.push(new Range(6, 8));
-r.push(new Range(0, 4));
+r.push(new Range(0, 5));
 r.simplify();
 assert(r.length === 2);
 assert(r.list[0].min === 0);
 assert(r.list[1].min === 6);
 
 r = new RangeList(false);
-r.push(new Range(0, 4));
+r.push(new Range(0, 5));
 r.push(new Range(6, 8));
 r.simplify();
 assert(r.length === 2);
@@ -237,34 +241,34 @@ r.push(new Range(5, 8));
 r.simplify();
 assert(r.length === 1);  // Got merged
 assert(r.list[0].min === 0);
-assert(r.list[0].max === 9);
+assert(r.list[0].max === 8);
 
 r = new RangeList(false);
-r.push(new Range(0, 4));
+r.push(new Range(0, 5));
 r.push(new Range(5, 8));
 r.push(new Range(1, 8));
 r.simplify();
 assert(r.length === 1);  // Got merged
 assert(r.list[0].min === 0);
-assert(r.list[0].max === 9);
+assert(r.list[0].max === 8);
 
 r = new RangeList(false);
-r.push(new Range(0, 4));
-r.push(new Range(5, 8));
+r.push(new Range(0, 5));
+r.push(new Range(5, 9));
 r.push(new Range(9, 9));
 r.simplify();
 assert(r.length === 1);  // Got merged
 assert(r.list[0].min === 0);
-assert(r.list[0].max === 10);
+assert(r.list[0].max === 9);
 
 r = new RangeList(false);
-r.push(new Range(9, 9));
-r.push(new Range(0, 4));
+r.push(new Range(9, 10));
+r.push(new Range(0, 5));
 r.push(new Range(5, 7));
 r.simplify();
 assert(r.length === 2);  // Got merged
 assert(r.list[0].min === 0);
-assert(r.list[0].max === 8);
+assert(r.list[0].max === 7);
 assert(r.list[1].min === 9);
 assert(r.list[1].max === 10);
 
