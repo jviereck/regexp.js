@@ -370,5 +370,6 @@ assertEquality(closure[0], c);
 
 // ---
 
+// var nfa = new NFA(parse('^a(?:b|a)c'));
 var nfa = new NFA(parse('^abc'));
 var dfa = new DFA(nfa);
