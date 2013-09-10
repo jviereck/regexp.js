@@ -321,6 +321,10 @@ assert(res.length === 1);
 var JIT = require('./lib/jit');
 var State = JIT.State;
 var EPSILON = JIT.EPSILON;
+
+var NFA = JIT.NFA;
+var DFA = JIT.DFA;
+
 var A = new RangeList([new Range(65, 66)]);
 
 function buildStates() {
@@ -363,3 +367,8 @@ assertEquality(closure[3], d);
 var closure = c.getEpsilonClosure();
 assertEquality(closure.length, 1);
 assertEquality(closure[0], c);
+
+// ---
+
+var nfa = new NFA(parse('^abc'));
+var dfa = new DFA(nfa);
