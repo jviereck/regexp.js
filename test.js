@@ -3,23 +3,26 @@ var fs = require('fs');
 var parse = require('./lib/parser.js').parse;
 var RegExpJS = require('./index').RegExpJS;
 
-var parseTests = JSON.parse(fs.readFileSync('test/parse_input.json') || '[]');
-var parseResult = JSON.parse(fs.readFileSync('test/parse_output.json') || '[]');
+if (typeof window === 'undefined') {
+    var parseTests = JSON.parse(fs.readFileSync('test/parse_input.json') || '[]');
+    var parseResult = JSON.parse(fs.readFileSync('test/parse_output.json') || '[]');
 
-if (parseTests.length !== parseResult.length) {
-    fail('Parse input and output file needs to have same number of arguments');
+    if (parseTests.length !== parseResult.length) {
+        fail('Parse input and output file needs to have same number of arguments');
+    }
+
+    parseTests.forEach(function(input, idx) {
+        var par = parse(input);
+        var res = parseResult[idx];
+
+        if (JSON.stringify(par) !== JSON.stringify(res)) {
+            throw new Error('Failure parsing string ' + input + ':' + JSON.stringify(par) + '\n' + JSON.stringify(res));
+        } else {
+            console.log('PASSED TEST: ' + input);
+        }
+    });
 }
 
-parseTests.forEach(function(input, idx) {
-    var par = parse(input);
-    var res = parseResult[idx];
-
-    if (JSON.stringify(par) !== JSON.stringify(res)) {
-        throw new Error('Failure parsing string ' + input + ':' + JSON.stringify(par) + '\n' + JSON.stringify(res));
-    } else {
-        console.log('PASSED TEST: ' + input);
-    }
-});
 
 var test_scope = '';
 
@@ -172,13 +175,17 @@ assertRegExp(/[a-}]/i, 'a');
 assertRegExp(/[a-a]/i, 'A');
 assertRegExp(/[a-a]/i, 'a');
 assertRegExp(/[a-}]/i, '\\');  // Does not match.
-assertRegExp(/γ/i, 'Γ');
-assertRegExp(/γ/i, 'γ');
-assertRegExp(/[Α-Ω]/i, 'Γ');
-assertRegExp(/[Α-Ω]/i, 'γ');
-assertRegExp(/[α-ω]/i, 'Γ');
-assertRegExp(/[α-ω]/i, 'γ');
-
+a = String.fromCharCode(945);  // a
+A = String.fromCharCode(913);  // Α
+y = String.fromCharCode(947);  // γ
+Y = String.fromCharCode(915);  // Γ
+o = String.fromCharCode(969);  // ω
+O = String.fromCharCode(937);  // Ω
+assertRegExp(new RegExp(y, 'i'), y);
+assertRegExp(new RegExp(y, 'i'), Y);
+assertRegExp(new RegExp('[' + A + '-' + O + ']', 'i'), Y);  // /[Α-Ω]/i
+assertRegExp(new RegExp('[' + a + '-' + o + ']', 'i'), y);  // /[Α-Ω]/i
+assertRegExp(new RegExp('[' + a + '-' + o + ']', 'i'), y);  // /[Α-Ω]/i
 
 // Parsing of non closing brackets (not defined in standard?)
 assertRegExp(/]/, ']');
@@ -271,7 +278,7 @@ assert(r.list[0].max === 7);
 assert(r.list[1].min === 9);
 assert(r.list[1].max === 10);
 
-// --- intersectWith tests
+// --- intersect tests
 
 a = new RangeList(false);
 a.push(new Range(0,  5));
@@ -281,33 +288,78 @@ a.push(new Range(15, 20));
 
 r = new RangeList(false);
 r.push(new Range(0, 15));
-res = a.intersectWith(r);
+res = a.intersect(r);
 assert(res.length === 3);
 
 r = new RangeList(false);
 r.push(new Range(0, 15));
-res = a.intersectWith(r, true);
+res = a.intersect(r, true);
 assert(res.length === 1);
 
 r = new RangeList(false);
 r.push(new Range(5, 15));
-res = a.intersectWith(r);
+res = a.intersect(r);
 assert(res.length === 2);
 
 r = new RangeList(false);
 r.push(new Range(5, 15));
-res = a.intersectWith(r, true);
+res = a.intersect(r, true);
 assert(res.length === 2);
 
 r = new RangeList(false);
 r.push(new Range(0, 10));
 r.push(new Range(15, 20));
-res = a.intersectWith(r);
+res = a.intersect(r);
 assert(res.length === 3);
 
 r = new RangeList(false);
 r.push(new Range(0, 10));
 r.push(new Range(15, 20));
-res = a.intersectWith(r, true);
+res = a.intersect(r, true);
 assert(res.length === 1);
 
+var JIT = require('./lib/jit');
+var State = JIT.State;
+var EPSILON = JIT.EPSILON;
+var A = new RangeList([new Range(65, 66)]);
+
+function buildStates() {
+    // Go into global space!
+    a = new State(0);
+    b = new State(1);
+    c = new State(2);
+    d = new State(3);
+}
+
+buildStates();
+a.addTransition(EPSILON, b);
+b.addTransition(EPSILON, a);
+
+var closure = a.getEpsilonClosure();
+assertEquality(closure.length, 2);
+assertEquality(closure[0], a);
+assertEquality(closure[1], b);
+
+buildStates();
+a.addTransition(EPSILON, b);
+b.addTransition(EPSILON, c);
+c.addTransition(A, d);
+
+var closure = a.getEpsilonClosure();
+assertEquality(closure.length, 3);
+assertEquality(closure[0], a);
+assertEquality(closure[1], b);
+assertEquality(closure[2], c);
+
+// Reuse previous states.
+a.addTransition(EPSILON, d);
+var closure = a.getEpsilonClosure();
+assertEquality(closure.length, 4);
+assertEquality(closure[0], a);
+assertEquality(closure[1], b);
+assertEquality(closure[2], c);
+assertEquality(closure[3], d);
+
+var closure = c.getEpsilonClosure();
+assertEquality(closure.length, 1);
+assertEquality(closure[0], c);
