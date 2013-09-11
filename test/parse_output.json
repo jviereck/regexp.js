@@ -7,19 +7,19 @@
         "sub": "start",
         "from": 0,
         "to": 1,
-        "bit": "^"
+        "raw": "^"
       },
       {
         "type": "character",
         "char": "a",
         "from": 1,
         "to": 2,
-        "bit": "a"
+        "raw": "a"
       }
     ],
     "from": 0,
     "to": 2,
-    "bit": "^a",
+    "raw": "^a",
     "lastMatchIdx": 0
   },
   {
@@ -30,12 +30,12 @@
         "char": "a",
         "from": 0,
         "to": 1,
-        "bit": "a"
+        "raw": "a"
       }
     ],
     "from": 0,
     "to": 1,
-    "bit": "a",
+    "raw": "a",
     "lastMatchIdx": 0
   },
   {
@@ -49,12 +49,12 @@
             "char": "a",
             "from": 0,
             "to": 1,
-            "bit": "a"
+            "raw": "a"
           }
         ],
         "from": 0,
         "to": 1,
-        "bit": "a"
+        "raw": "a"
       },
       {
         "type": "alternative",
@@ -64,24 +64,24 @@
             "char": "b",
             "from": 2,
             "to": 3,
-            "bit": "b"
+            "raw": "b"
           },
           {
             "type": "character",
             "char": "c",
             "from": 3,
             "to": 4,
-            "bit": "c"
+            "raw": "c"
           }
         ],
         "from": 2,
         "to": 4,
-        "bit": "bc"
+        "raw": "bc"
       }
     ],
     "from": 0,
     "to": 4,
-    "bit": "a|bc",
+    "raw": "a|bc",
     "lastMatchIdx": 0
   },
   {
@@ -95,18 +95,18 @@
             "char": "a",
             "from": 1,
             "to": 2,
-            "bit": "a"
+            "raw": "a"
           }
         ],
         "negative": false,
         "from": 0,
         "to": 3,
-        "bit": "[a]"
+        "raw": "[a]"
       }
     ],
     "from": 0,
     "to": 3,
-    "bit": "[a]",
+    "raw": "[a]",
     "lastMatchIdx": 0
   },
   {
@@ -120,25 +120,25 @@
             "char": "a",
             "from": 1,
             "to": 2,
-            "bit": "a"
+            "raw": "a"
           },
           {
             "type": "character",
             "char": "-",
             "from": 2,
             "to": 3,
-            "bit": "-"
+            "raw": "-"
           }
         ],
         "negative": false,
         "from": 0,
         "to": 4,
-        "bit": "[a-]"
+        "raw": "[a-]"
       }
     ],
     "from": 0,
     "to": 4,
-    "bit": "[a-]",
+    "raw": "[a-]",
     "lastMatchIdx": 0
   },
   {
@@ -154,18 +154,18 @@
               "char": "A",
               "from": 1,
               "to": 2,
-              "bit": "A"
+              "raw": "A"
             },
             "max": {
               "type": "character",
               "char": "Z",
               "from": 3,
               "to": 4,
-              "bit": "Z"
+              "raw": "Z"
             },
             "from": 2,
             "to": 4,
-            "bit": "-Z"
+            "raw": "-Z"
           },
           {
             "type": "characterClassRange",
@@ -174,18 +174,18 @@
               "char": "a",
               "from": 4,
               "to": 5,
-              "bit": "a"
+              "raw": "a"
             },
             "max": {
               "type": "character",
               "char": "z",
               "from": 6,
               "to": 7,
-              "bit": "z"
+              "raw": "z"
             },
             "from": 5,
             "to": 7,
-            "bit": "-z"
+            "raw": "-z"
           },
           {
             "type": "characterClassRange",
@@ -194,36 +194,36 @@
               "char": "0",
               "from": 7,
               "to": 8,
-              "bit": "0"
+              "raw": "0"
             },
             "max": {
               "type": "character",
               "char": "9",
               "from": 9,
               "to": 10,
-              "bit": "9"
+              "raw": "9"
             },
             "from": 8,
             "to": 10,
-            "bit": "-9"
+            "raw": "-9"
           },
           {
             "type": "character",
             "char": "_",
             "from": 10,
             "to": 11,
-            "bit": "_"
+            "raw": "_"
           }
         ],
         "negative": false,
         "from": 0,
         "to": 12,
-        "bit": "[A-Za-z0-9_]"
+        "raw": "[A-Za-z0-9_]"
       }
     ],
     "from": 0,
     "to": 12,
-    "bit": "[A-Za-z0-9_]",
+    "raw": "[A-Za-z0-9_]",
     "lastMatchIdx": 0
   },
   {
@@ -238,18 +238,18 @@
             "value": "\\",
             "from": 2,
             "to": 3,
-            "bit": "\\"
+            "raw": "\\"
           }
         ],
         "negative": false,
         "from": 0,
         "to": 4,
-        "bit": "[\\\\]"
+        "raw": "[\\\\]"
       }
     ],
     "from": 0,
     "to": 4,
-    "bit": "[\\\\]",
+    "raw": "[\\\\]",
     "lastMatchIdx": 0
   },
   {
@@ -264,25 +264,25 @@
             "value": "",
             "from": 1,
             "to": 5,
-            "bit": "\\000"
+            "raw": "\\000"
           },
           {
             "type": "character",
             "char": "1",
             "from": 5,
             "to": 6,
-            "bit": "1"
+            "raw": "1"
           }
         ],
         "negative": false,
         "from": 0,
         "to": 7,
-        "bit": "[\\0001]"
+        "raw": "[\\0001]"
       }
     ],
     "from": 0,
     "to": 7,
-    "bit": "[\\0001]",
+    "raw": "[\\0001]",
     "lastMatchIdx": 0
   },
   {
@@ -297,18 +297,18 @@
             "value": "0020",
             "from": 2,
             "to": 7,
-            "bit": "u0020"
+            "raw": "u0020"
           }
         ],
         "negative": false,
         "from": 0,
         "to": 8,
-        "bit": "[\\u0020]"
+        "raw": "[\\u0020]"
       }
     ],
     "from": 0,
     "to": 8,
-    "bit": "[\\u0020]",
+    "raw": "[\\u0020]",
     "lastMatchIdx": 0
   },
   {
@@ -322,7 +322,7 @@
             "char": " ",
             "from": 1,
             "to": 2,
-            "bit": " "
+            "raw": " "
           },
           {
             "type": "escape",
@@ -330,18 +330,18 @@
             "value": "0020",
             "from": 3,
             "to": 8,
-            "bit": "u0020"
+            "raw": "u0020"
           }
         ],
         "negative": false,
         "from": 0,
         "to": 9,
-        "bit": "[ \\u0020]"
+        "raw": "[ \\u0020]"
       }
     ],
     "from": 0,
     "to": 9,
-    "bit": "[ \\u0020]",
+    "raw": "[ \\u0020]",
     "lastMatchIdx": 0
   },
   {
@@ -355,32 +355,32 @@
             "char": " ",
             "from": 1,
             "to": 2,
-            "bit": " "
+            "raw": " "
           },
           {
             "type": "escapeChar",
             "value": "f",
             "from": 2,
             "to": 4,
-            "bit": "\\f"
+            "raw": "\\f"
           },
           {
             "type": "escapeChar",
             "value": "n",
             "from": 4,
             "to": 6,
-            "bit": "\\n"
+            "raw": "\\n"
           }
         ],
         "negative": false,
         "from": 0,
         "to": 7,
-        "bit": "[ \\f\\n]"
+        "raw": "[ \\f\\n]"
       }
     ],
     "from": 0,
     "to": 7,
-    "bit": "[ \\f\\n]",
+    "raw": "[ \\f\\n]",
     "lastMatchIdx": 0
   },
   {
@@ -395,18 +395,18 @@
             "value": "0008",
             "from": 1,
             "to": 3,
-            "bit": "\\b"
+            "raw": "\\b"
           }
         ],
         "negative": false,
         "from": 0,
         "to": 4,
-        "bit": "[\\b]"
+        "raw": "[\\b]"
       }
     ],
     "from": 0,
     "to": 4,
-    "bit": "[\\b]",
+    "raw": "[\\b]",
     "lastMatchIdx": 0
   },
   {
@@ -421,12 +421,12 @@
         "value": "0020",
         "from": 1,
         "to": 6,
-        "bit": "u0020"
+        "raw": "u0020"
       }
     ],
     "from": 0,
     "to": 6,
-    "bit": "\\u0020",
+    "raw": "\\u0020",
     "lastMatchIdx": 0
   },
   {
@@ -438,12 +438,12 @@
         "value": "1",
         "from": 0,
         "to": 2,
-        "bit": "\\1"
+        "raw": "\\1"
       }
     ],
     "from": 0,
     "to": 2,
-    "bit": "\\1",
+    "raw": "\\1",
     "lastMatchIdx": 0
   },
   {
@@ -461,23 +461,23 @@
               "value": "1",
               "from": 1,
               "to": 3,
-              "bit": "\\1"
+              "raw": "\\1"
             }
           ],
           "from": 1,
           "to": 3,
-          "bit": "\\1"
+          "raw": "\\1"
         },
         "from": 0,
         "to": 4,
-        "bit": "(\\1)",
+        "raw": "(\\1)",
         "matchIdx": 1,
         "lastMatchIdx": 1
       }
     ],
     "from": 0,
     "to": 4,
-    "bit": "(\\1)",
+    "raw": "(\\1)",
     "lastMatchIdx": 1
   },
   {
@@ -493,16 +493,16 @@
               "type": "dot",
               "from": 1,
               "to": 2,
-              "bit": "."
+              "raw": "."
             }
           ],
           "from": 1,
           "to": 2,
-          "bit": "."
+          "raw": "."
         },
         "from": 0,
         "to": 3,
-        "bit": "(.)",
+        "raw": "(.)",
         "matchIdx": 1,
         "lastMatchIdx": 1
       },
@@ -511,12 +511,12 @@
         "ref": 1,
         "from": 3,
         "to": 5,
-        "bit": "\\1"
+        "raw": "\\1"
       }
     ],
     "from": 0,
     "to": 5,
-    "bit": "(.)\\1",
+    "raw": "(.)\\1",
     "lastMatchIdx": 1
   },
   {
@@ -533,23 +533,23 @@
               "char": "x",
               "from": 1,
               "to": 2,
-              "bit": "x"
+              "raw": "x"
             }
           ],
           "from": 1,
           "to": 2,
-          "bit": "x"
+          "raw": "x"
         },
         "from": 0,
         "to": 3,
-        "bit": "(x)",
+        "raw": "(x)",
         "matchIdx": 1,
         "lastMatchIdx": 1
       }
     ],
     "from": 0,
     "to": 3,
-    "bit": "(x)",
+    "raw": "(x)",
     "lastMatchIdx": 1
   },
   {
@@ -566,21 +566,21 @@
               "char": "x",
               "from": 3,
               "to": 4,
-              "bit": "x"
+              "raw": "x"
             }
           ],
           "from": 3,
           "to": 4,
-          "bit": "x"
+          "raw": "x"
         },
         "from": 0,
         "to": 5,
-        "bit": "(?:x)"
+        "raw": "(?:x)"
       }
     ],
     "from": 0,
     "to": 5,
-    "bit": "(?:x)",
+    "raw": "(?:x)",
     "lastMatchIdx": 0
   },
   {
@@ -591,7 +591,7 @@
         "char": "x",
         "from": 0,
         "to": 1,
-        "bit": "x"
+        "raw": "x"
       },
       {
         "type": "group",
@@ -604,21 +604,21 @@
               "char": "y",
               "from": 4,
               "to": 5,
-              "bit": "y"
+              "raw": "y"
             }
           ],
           "from": 4,
           "to": 5,
-          "bit": "y"
+          "raw": "y"
         },
         "from": 1,
         "to": 6,
-        "bit": "(?=y)"
+        "raw": "(?=y)"
       }
     ],
     "from": 0,
     "to": 6,
-    "bit": "x(?=y)",
+    "raw": "x(?=y)",
     "lastMatchIdx": 0
   },
   {
@@ -629,7 +629,7 @@
         "char": "x",
         "from": 0,
         "to": 1,
-        "bit": "x"
+        "raw": "x"
       },
       {
         "type": "group",
@@ -642,21 +642,21 @@
               "char": "y",
               "from": 4,
               "to": 5,
-              "bit": "y"
+              "raw": "y"
             }
           ],
           "from": 4,
           "to": 5,
-          "bit": "y"
+          "raw": "y"
         },
         "from": 1,
         "to": 6,
-        "bit": "(?!y)"
+        "raw": "(?!y)"
       }
     ],
     "from": 0,
     "to": 6,
-    "bit": "x(?!y)",
+    "raw": "x(?!y)",
     "lastMatchIdx": 0
   },
   {
@@ -680,29 +680,29 @@
                 "char": "a",
                 "from": 1,
                 "to": 2,
-                "bit": "a"
+                "raw": "a"
               }
             ],
             "from": 1,
             "to": 2,
-            "bit": "a"
+            "raw": "a"
           },
           "from": 0,
           "to": 3,
-          "bit": "(a)",
+          "raw": "(a)",
           "matchIdx": 1,
           "lastMatchIdx": 1
         },
         "from": 3,
         "to": 4,
-        "bit": "*",
+        "raw": "*",
         "firstMatchIdx": 1,
         "lastMatchIdx": 1
       }
     ],
     "from": 0,
     "to": 4,
-    "bit": "(a)*",
+    "raw": "(a)*",
     "lastMatchIdx": 1
   },
   {
@@ -717,16 +717,16 @@
           "char": "a",
           "from": 0,
           "to": 1,
-          "bit": "a"
+          "raw": "a"
         },
         "from": 1,
         "to": 2,
-        "bit": "*"
+        "raw": "*"
       }
     ],
     "from": 0,
     "to": 2,
-    "bit": "a*",
+    "raw": "a*",
     "lastMatchIdx": 0
   },
   {
@@ -740,7 +740,7 @@
         "char": "a",
         "from": 0,
         "to": 1,
-        "bit": "a"
+        "raw": "a"
       },
       {
         "type": "group",
@@ -752,16 +752,16 @@
               "type": "dot",
               "from": 2,
               "to": 3,
-              "bit": "."
+              "raw": "."
             }
           ],
           "from": 2,
           "to": 3,
-          "bit": "."
+          "raw": "."
         },
         "from": 1,
         "to": 4,
-        "bit": "(.)",
+        "raw": "(.)",
         "matchIdx": 1,
         "lastMatchIdx": 1
       },
@@ -770,19 +770,19 @@
         "char": "a",
         "from": 4,
         "to": 5,
-        "bit": "a"
+        "raw": "a"
       },
       {
         "type": "ref",
         "ref": 1,
         "from": 5,
         "to": 7,
-        "bit": "\\1"
+        "raw": "\\1"
       }
     ],
     "from": 0,
     "to": 7,
-    "bit": "a(.)a\\1",
+    "raw": "a(.)a\\1",
     "lastMatchIdx": 1
   }
 ]

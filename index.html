@@ -76,8 +76,12 @@
             margin-left: -8px;
         }
 
-        .forked {
+        .hide {
             opacity: 0.5;
+        }
+
+        .forked {
+
         }
 
 
@@ -188,21 +192,14 @@ var hashData = parseHash();
 if ('regexp' in hashData) regExpDom.value = hashData.regexp;
 if ('input' in hashData) editor.setValue(hashData.input);
 
+editor.on('change', matchIt);
+
 var lastRes = null;
 var currentTrace = null;
 
 function renderRegExpDom(from, to) {
-    var shift = 6;
-    var pre = '<span class="booting">';
-    var boot = '[^]*?';
-    var post = '</span>'
-    var regexp = pre + boot + post + regExpDom.value;
-
-    if (from >= 0) {
-        shift = pre.length + boot.length + post.length;
-    } else {
-        shift = pre.length + shift;
-    }
+    var shift = 0;
+    var regexp = regExpDom.value;
 
     var html = regexp.substring(0, from + shift) + '<span class="highlight">' + regexp.substring(from + shift, to + shift) + '</span>' + regexp.substring(to + shift);
     regExpRendererDom.innerHTML = html;
@@ -236,16 +233,6 @@ function reflectSelection(trace) {
         {className: 'matchhighlight'});
 }
 
-function reflectTreeSelection() {
-    var ui = ref.data.ui;
-    // Get the data used to create the hovered or if no hoverd node present
-    // the current selected node.
-    var traceId = (ui.hovered || ui.selected)[0].getAttribute('data-trace-id');
-    var trace = lastRes.traces.data.traceHash[traceId];
-
-    reflectSelection(trace);
-}
-
 tracesDom.addEventListener('mouseover', function(e) {
     var target = e.target;
     var traceId = target.getAttribute('data-trace-id');
@@ -256,26 +243,22 @@ tracesDom.addEventListener('mouseover', function(e) {
 
 function traceToHTML(trace) {
     function traceNodeToHTML(traceNode, className) {
-        if (traceNode == null) {
+        if (traceNode == null || traceNode.node.dontCountTraceNode ) {
             return '';
         }
         var display = '';
-        if (traceNode.node.parseEntry == null) {
-            display = '';
+
+        if (traceNode.node.type == 'GROUP_BEGIN') {
+            display = ''; //(';
+        } else if (traceNode.node.type == 'GROUP_END') {
+            display = ''; //')';
+        } else if (traceNode.node.type == 'BACK') {
+            display = 'B';
+            className += 'arrow_box';
+        } else if (traceNode.node.type == 'FORWARD') {
+            display = '>>';
         } else {
-            if (traceNode.node.type == 'GROUP_BEGIN') {
-                display = ''; //(';
-            } else if (traceNode.node.type == 'GROUP_END') {
-                display = ''; //')';
-            } else if (traceNode.node.type == 'BACK') {
-                display = 'B';
-                className += 'arrow_box';
-            } else {
-                display = traceNode.node.parseEntry.bit;
-            }
-            if (traceNode.node.parseEntry.booting) {
-                className += ' booting';
-            }
+            display = traceNode.node.parseEntry.raw;
         }
 
         var html = '';
@@ -299,7 +282,7 @@ function traceToHTML(trace) {
     for (var i = 0; i < trace.length; i++) {
         var className = '';
         if (i <= forkIdx) {
-            className = 'forked ';
+            className = 'hide ';
         } else if (trace.isEndTrace && i === lastVisibleNodeIdx) {
             className = trace.isEndTrace + ' ';
         }
@@ -335,15 +318,14 @@ function matchIt() {
         resOutput = 'null';
     }
 
-    // var traceOutput = '';
-    // traceOutput += '<div>Steps: ' + res.traces.data.nodeCounter + ', Backreferences: ' + res.traces.data.backrefCounter + '</div>';
-    // traceOutput += res.traces.filter(function(trace) {
-    //     return trace.isEndTrace;
-    // }).map(function(trace) {
-    //     var html = traceToHTML(trace);
-    //     return '<div class="traceRun"><nobr>' + html + '</nobr></div>';
-    // }).join('\n');
-    // tracesDom.innerHTML = traceOutput;
+    var traceOutput = '';
+    traceOutput += res.traces.filter(function(trace) {
+        return trace.isEndTrace;
+    }).map(function(trace) {
+        var html = traceToHTML(trace);
+        return '<div class="traceRun"><nobr>' + html + '</nobr></div>';
+    }).join('\n');
+    tracesDom.innerHTML = traceOutput;
 
     document.getElementById('result').value = resOutput;
     document.getElementById('parseTree').value = JSON.stringify(res.parseTree, null, 4);
