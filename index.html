@@ -1,94 +1,14 @@
+<!DOCTYPE html>
 <html>
 <head>
+    <meta charset="utf-8">
+    <title>RegExp.JS - matches JavaScript in it self</title>
     <script src="build/browser.js"></script>
-    <link rel="stylesheet" href="support/codemirror.css">
-    <script src="support/codemirror.js"></script>
+    <link rel="stylesheet" href="frontend/codemirror.css">
+    <script src="frontend/codemirror.js"></script>
 
-    <style type="text/css">
-        .CodeMirror {
-            border: 1px solid black;
-        }
-        .CodeMirror .matchhighlight {
-            background-color: orange;
-            background-position: bottom;
-            background-repeat: repeat-x;
-        }
-    </style>
-
-    <style>
-        span.highlight {
-            background-color: orange;
-        }
-
-        .booting {
-            background-color: #C6C6EC;
-        }
-
-        #traces span {
-            border: 1px solid gray;
-            display: inline-block;
-            width: 20px;
-            text-align: center;
-            overflow: hidden;
-        }
-
-        #traces span.failed {
-            background-color: #FFB2A8;
-        }
-
-        #traces span:hover {
-            border: 1px solid red;
-            background-color: orange;
-        }
-
-        #traces span.success {
-            background-color: #4FC467;
-        }
-
-        .arrow_box {
-            position: relative;
-            background: #88b7d5;
-            border: 4px solid #c2e1f5;
-            overflow: visible !important;
-        }
-        .arrow_box:after, .arrow_box:before {
-            bottom: 100%;
-            border: solid transparent;
-            content: " ";
-            height: 0;
-            width: 0;
-            position: absolute;
-            pointer-events: none;
-        }
-
-        .arrow_box:after {
-            border-color: rgba(136, 183, 213, 0);
-            border-bottom-color: #88b7d5;
-            border-width: 2px;
-            left: 50%;
-            margin-left: -2px;
-        }
-        .arrow_box:before {
-            border-color: rgba(194, 225, 245, 0);
-            border-bottom-color: #c2e1f5;
-            border-width: 8px;
-            left: 50%;
-            margin-left: -8px;
-        }
-
-        .hide {
-            opacity: 0.5;
-        }
-
-        .forked {
-
-        }
-
-
-        #traces .traceRun {
-            margin-bottom: 3px;
-        }
-    </style>
+    <link rel="stylesheet" href="frontend/main.css">
+    <script src="frontend/index.js"></script>
 </head>
 
 <body>
@@ -98,9 +18,12 @@
         <td>RegExp:</td>
         <td>
             <input id="regexp" style="width:100%" value="a|b"></input>
-            <!-- <input id="regexp" style="width:100%" value="b"></input> -->
-            <!-- <input id="regexp" style="width:100%" value="(\w\w)*.*\w"></input> -->
-            <span style="display:hidden" id="regexpRenderer"></span>
+        </td>
+    </tr>
+    <tr>
+        <td></td>
+        <td>
+            <span id="regexperror"></span>
         </td>
     </tr>
     <tr>
@@ -108,8 +31,6 @@
     </tr>
     <tr>
         <td></td><td>
-            <button id="newRegExpButton" onclick="newRegExp()" display="inline">New RegExp</button>
-            <button id="matchItButton" onclick="matchIt()" >Match</button>
             <button id="SaveOnHash" onclick="saveOnHash()">Share This</button>
         </td>
     </tr>
@@ -126,216 +47,4 @@
         <td>ParseTree:</td><td><textarea id="parseTree" rows=10 style="width:100%"></textarea></td>
     </tr>
 </table>
-
-
-<script>
-
-var regExpDom = document.getElementById('regexp');
-var regExpRendererDom = document.getElementById('regexpRenderer');
-var newRegExpButton = document.getElementById('newRegExpButton');
-var matchItButton = document.getElementById('newRegExpButton');
-
-var infoTRs = ['resultTR', 'tracesTR', 'parseTreeTR'].map(function(str) {
-    return document.getElementById(str);
-});
-
-function show(dom, inline) {
-    dom.style.display = !inline ? 'block' : 'inline';
-}
-function hide(dom) {
-    dom.style.display = 'none';
-}
-
-function showRegExpInput() {
-    show(regExpDom);
-    hide(regExpRendererDom);
-    hide(newRegExpButton);
-}
-
-function showRegExpResult() {
-    hide(regExpDom);
-    show(regExpRendererDom);
-    show(newRegExpButton, true);
-}
-
-function parseHash() {
-    var hash = location.hash.substring(1);
-    if (!hash) return {};
-
-    var parts = hash.split('&');
-    var keys = {};
-    parts.forEach(function(part) {
-        var splits = part.split('=');
-        keys[splits[0]] = decodeURIComponent(splits[1]);
-    });
-    return keys;
-}
-
-function saveOnHash() {
-    var regexp = regExpDom.value;
-    var input = editor.getValue();
-    location.hash = 'regexp=' + encodeURIComponent(regexp) + '&' + 'input=' + encodeURIComponent(input);
-
-    alert('Stored current RegExp and input on the URL. Feel free to pass the URL to someone else for sharing.')
-}
-
-var inputDom = document.getElementById('area');
-var tracesDom = document.getElementById('traces');
-
-var editor = CodeMirror.fromTextArea(inputDom, {
-  lineNumbers: true
-});
-editor.setSize(null, '100px');
-editor._overlay = null;
-
-var hashData = parseHash();
-if ('regexp' in hashData) regExpDom.value = hashData.regexp;
-if ('input' in hashData) editor.setValue(hashData.input);
-
-editor.on('change', matchIt);
-
-var lastRes = null;
-var currentTrace = null;
-
-function renderRegExpDom(from, to) {
-    var shift = 0;
-    var regexp = regExpDom.value;
-
-    var html = regexp.substring(0, from + shift) + '<span class="highlight">' + regexp.substring(from + shift, to + shift) + '</span>' + regexp.substring(to + shift);
-    regExpRendererDom.innerHTML = html;
-}
-
-function reflectSelection(trace) {
-    var selection;
-    var pos;
-    currentTrace = trace;
-    if (!trace || !trace.node || !trace.node.parseEntry) {
-        selection = { from: 0, to: 0 };
-    } else {
-        selection = trace.node.parseEntry;
-    }
-    if (trace) {
-        pos = { from: trace.pos, to: trace.pos + 1 };
-    } else {
-        pos = { from: 0, to: 0 };
-    }
-
-    renderRegExpDom(selection.from, selection.to);
-
-    if (editor._overlay) {
-        editor._overlay.clear();
-        editor.removeOverlay(editor._overlay);
-    }
-    var doc = editor.getDoc();
-    editor._overlay = doc.markText(
-        doc.posFromIndex(pos.from),
-        doc.posFromIndex(pos.to),
-        {className: 'matchhighlight'});
-}
-
-tracesDom.addEventListener('mouseover', function(e) {
-    var target = e.target;
-    var traceId = target.getAttribute('data-trace-id');
-    var trace = lastRes.traces.data.traceHash[traceId];
-
-    reflectSelection(trace);
-})
-
-function traceToHTML(trace) {
-    function traceNodeToHTML(traceNode, className) {
-        if (traceNode == null || traceNode.node.dontCountTraceNode ) {
-            return '';
-        }
-        var display = '';
-
-        if (traceNode.node.type == 'GROUP_BEGIN') {
-            display = ''; //(';
-        } else if (traceNode.node.type == 'GROUP_END') {
-            display = ''; //')';
-        } else if (traceNode.node.type == 'BACK') {
-            display = 'B';
-            className += 'arrow_box';
-        } else if (traceNode.node.type == 'FORWARD') {
-            display = '>>';
-        } else {
-            display = traceNode.node.parseEntry.raw;
-        }
-
-        var html = '';
-        if (display) {
-            html = '<span class="' + className + '" data-trace-id="' + traceNode.id + '">' + display + '</span>';
-        }
-        return html;
-    }
-
-    var html = '';
-    var forkIdx = trace.lastBackIdx;
-    var lastVisibleNodeIdx = trace.length;
-
-    for (var i = trace.length - 1; i >= 0; i--) {
-        if (!trace[i].node.dontCountTraceNode) {
-            lastVisibleNodeIdx = i;
-            break;
-        }
-    }
-
-    for (var i = 0; i < trace.length; i++) {
-        var className = '';
-        if (i <= forkIdx) {
-            className = 'hide ';
-        } else if (trace.isEndTrace && i === lastVisibleNodeIdx) {
-            className = trace.isEndTrace + ' ';
-        }
-        html += traceNodeToHTML(trace[i], className);
-    }
-
-    return html;
-}
-
-function newRegExp() {
-    showRegExpInput();
-}
-
-function matchIt() {
-    showRegExpResult();
-
-    renderRegExpDom(0, 0);
-
-    var regExp = new RegExpJS(regExpDom.value);
-    var input = editor.getValue();
-
-    try {
-        var res = window.res = lastRes = regExp.execDebug(input, regexp);
-    } catch (exp) {
-        alert('Sorry: ' + exp);
-        return;
-    }
-
-    var resOutput;
-    if (res.matches) {
-        resOutput = JSON.stringify(res.matches, null, 4);
-    } else {
-        resOutput = 'null';
-    }
-
-    var traceOutput = '';
-    traceOutput += res.traces.filter(function(trace) {
-        return trace.isEndTrace;
-    }).map(function(trace) {
-        var html = traceToHTML(trace);
-        return '<div class="traceRun"><nobr>' + html + '</nobr></div>';
-    }).join('\n');
-    tracesDom.innerHTML = traceOutput;
-
-    document.getElementById('result').value = resOutput;
-    document.getElementById('parseTree').value = JSON.stringify(res.parseTree, null, 4);
-}
-
-showRegExpInput();
-
-window.onload = function() {
-    matchIt();
-}
-
-</script>
 </html>

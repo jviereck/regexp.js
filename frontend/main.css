@@ -1,0 +1,77 @@
+.CodeMirror {
+    border: 1px solid black;
+}
+.CodeMirror .matchhighlight {
+    background-color: orange;
+    background-position: bottom;
+    background-repeat: repeat-x;
+}
+
+#regexp {
+    font-size: 20pt;
+    font-family: monospace;
+}
+
+span.highlight {
+    background-color: orange;
+}
+
+#traces span {
+    border: 1px solid gray;
+    display: inline-block;
+    width: 20px;
+    text-align: center;
+    overflow: hidden;
+}
+
+#traces span.failed {
+    background-color: #FFB2A8;
+}
+
+#traces span:hover {
+    border: 1px solid red;
+    background-color: orange;
+}
+
+#traces span.success {
+    background-color: #4FC467;
+}
+
+.arrow_box {
+    position: relative;
+    background: #88b7d5;
+    border: 4px solid #c2e1f5;
+    overflow: visible !important;
+}
+.arrow_box:after, .arrow_box:before {
+    bottom: 100%;
+    border: solid transparent;
+    content: " ";
+    height: 0;
+    width: 0;
+    position: absolute;
+    pointer-events: none;
+}
+
+.arrow_box:after {
+    border-color: rgba(136, 183, 213, 0);
+    border-bottom-color: #88b7d5;
+    border-width: 2px;
+    left: 50%;
+    margin-left: -2px;
+}
+.arrow_box:before {
+    border-color: rgba(194, 225, 245, 0);
+    border-bottom-color: #c2e1f5;
+    border-width: 8px;
+    left: 50%;
+    margin-left: -8px;
+}
+
+.hide {
+    opacity: 0.5;
+}
+
+#traces .traceRun {
+    margin-bottom: 3px;
+}
