@@ -143,29 +143,12 @@ function RegExpJS(pattern, flags) {
         flags = flags || '';
     }
 
-    // Instead of returning the RegExp object constructed here, return
-    // a instance of RegExpReturn, which is based on the RegExpJS object.
-    // This is necessary to set the `source`, `global`, ... properties to
-    // different values then the RegExpJS ones. As these properties are not
-    // writeable (by the spec!), they cannot be set on the `this` object
-    // directly.
-    var RegExpReturn = function RegExpJSReturnDummy() { };
-    RegExpReturn.prototype = new RegExpJS(__DIRECT_RETURN__);
-
-    var ret = new RegExpReturn();
-
-    ret.constructor = BuildInRegExp;
+    var self = this;
+    this.constructor = BuildInRegExp;
 
     function freezeIt(prop, propValue) {
         // The `source` property
-        Object.defineProperty(ret, prop, {
-          writable: false,
-          enumerable: false,
-          configurable: false,
-          value: propValue
-        });
-
-        Object.defineProperty(RegExpReturn.prototype, prop, {
+        Object.defineProperty(self, prop, {
           writable: false,
           enumerable: false,
           configurable: false,
@@ -178,24 +161,22 @@ function RegExpJS(pattern, flags) {
     freezeIt('ignoreCase', flags.indexOf('i') !== -1);
     freezeIt('multiline', flags.indexOf('m') !== -1);
 
-    Object.defineProperty(ret, 'lastIndex', {
+    Object.defineProperty(this, 'lastIndex', {
       writable: true,
       enumerable: false,
       configurable: false,
       value: 0
     });
 
-    ret.$startNode = getStartNodeFromPattern(pattern, ret.ignoreCase);
+    this.$startNode = getStartNodeFromPattern(pattern, this.ignoreCase);
 
     // Don't allow to overwrite the toString property on the object.
-    Object.defineProperty(ret, 'toString', {
+    Object.defineProperty(this, 'toString', {
       writable: false,
       enumerable: false,
       configurable: false,
       value: function() { return '[object RegExp]'; }
     });
-
-    return ret;
 }
 
 RegExpJS.prototype = new RegExp();
@@ -243,27 +224,6 @@ RegExpJS.prototype.test = function RegExpJSTest(str) {
 
 RegExpJS.prototype.exec.prototype = undefined;
 RegExpJS.prototype.test.prototype = undefined;
-
-function defineProperty(prop, propValue) {
-    Object.defineProperty(RegExpJS.prototype, prop, {
-      writable: false,
-      enumerable: false,
-      configurable: false,
-      value: propValue
-    });
-}
-
-defineProperty('source', '(?:)');
-defineProperty('global', false);
-defineProperty('multiline', false);
-defineProperty('ignoreCase', false);
-
-Object.defineProperty(RegExpJS.prototype, 'lastIndex', {
-  writable: true,
-  enumerable: false,
-  configurable: false,
-  value:0
-});
 
 if (typeof window !== 'undefined') {
     window.RegExpJS = RegExpJS;
