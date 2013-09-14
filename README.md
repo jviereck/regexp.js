@@ -1,4 +1,4 @@
-regexp.js
+RegExp.JS
 =========
 
 Implementing the JavaScript RegExp object in pure JavaScript again.
