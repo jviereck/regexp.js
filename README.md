@@ -1,13 +1,12 @@
 regexp.js
 =========
 
-A JavaScript implementation of RegExp for debugging purpose.
+Implementing the JavaScript RegExp object in pure JavaScript again.
 
-
-# Build the browser.js file under `build/`
-
-Run 
+Build the file `build/browser.js` by executing.
 
 ```
-$> browserify index.js -d -w -o build/browser.js
+browserify index.js -d -w -o build/browser.js
 ```
+
+More inforation: TODO.
