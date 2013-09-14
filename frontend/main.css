@@ -1,5 +1,7 @@
 .CodeMirror {
     border: 1px solid black;
+    font-size: 20px;
+    height: 50px;
 }
 .CodeMirror .matchhighlight {
     background-color: orange;
@@ -7,10 +9,6 @@
     background-repeat: repeat-x;
 }
 
-#regexp {
-    font-size: 20pt;
-    font-family: monospace;
-}
 
 span.highlight {
     background-color: orange;

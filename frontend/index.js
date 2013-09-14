@@ -12,7 +12,7 @@ function parseHash() {
 }
 
 function saveOnHash() {
-    var regexp = regExpDom.value;
+    var regexp = regExpEditor.getValue();
     var input = editor.getValue();
     location.hash = 'regexp=' + encodeURIComponent(regexp) + '&' + 'input=' + encodeURIComponent(input);
 
@@ -42,17 +42,26 @@ function reflectSelection(trace) {
         pos = { from: 0, to: 0 };
     }
 
-    selectRegExpDom(selection.from, selection.to);
 
     if (editor._overlay) {
         editor._overlay.clear();
         editor.removeOverlay(editor._overlay);
+        regExpEditor._overlay.clear();
+        regExpEditor.removeOverlay(editor._overlay);
     }
     var doc = editor.getDoc();
     editor._overlay = doc.markText(
         doc.posFromIndex(pos.from),
         doc.posFromIndex(pos.to),
-        {className: 'matchhighlight'});
+        {className: 'matchhighlight'}
+    );
+
+    var doc = regExpEditor.getDoc();
+    regExpEditor._overlay = doc.markText(
+        doc.posFromIndex(selection.from),
+        doc.posFromIndex(selection.to),
+        {className: 'matchhighlight'}
+    );
 }
 
 function traceToHTML(trace) {
@@ -110,7 +119,7 @@ function traceToHTML(trace) {
 
 function matchIt() {
     try {
-        var regExp = new RegExpJS(regExpDom.value);
+        var regExp = new RegExpJS(regExpEditor.getValue());
     } catch (e) {
         regExpErrorDom.textContent = e.toString();
         return;
@@ -146,6 +155,11 @@ function matchIt() {
     document.getElementById('parseTree').value = JSON.stringify(res.parseTree, null, 4);
 }
 
+var editor;
+var regExpEditor;
+var regExpErrorDom;
+var tracesDom;
+
 window.onload = function() {
     // Leak globally.
     editor = null;
@@ -163,9 +177,9 @@ window.onload = function() {
 
     var inputDom = document.getElementById('area');
 
-    editor = CodeMirror.fromTextArea(inputDom, {
-      lineNumbers: true
-    });
+    regExpEditor = CodeMirror.fromTextArea(regExpDom);
+
+    editor = CodeMirror.fromTextArea(inputDom);
     editor.setSize(null, '100px');
     editor._overlay = null;
 
@@ -181,6 +195,7 @@ window.onload = function() {
         matchItTimer = setTimeout(matchIt, 200);
     }
 
+    regExpEditor.on('change', scheduleMatchIt);
     editor.on('change', scheduleMatchIt);
 
     var previousRegExpDomValue = null;
