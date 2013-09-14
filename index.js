@@ -198,6 +198,8 @@ function RegExpJS(pattern, flags) {
     return ret;
 }
 
+RegExpJS.prototype = new RegExp();
+
 RegExpJS.prototype.execDebug = function RegExpJSExec(str) {
     // See: 15.10.6.2
     var i = this.lastIndex;
@@ -269,5 +271,13 @@ if (typeof window !== 'undefined') {
         window.require = require;
     }
 }
+
+var proto = RegExpJS.prototype;
+Object.defineProperty(RegExpJS, 'prototype', {
+  writable: false,
+  enumerable: false,
+  configurable: false,
+  value: proto
+});
 
 exports.RegExpJS = RegExpJS;

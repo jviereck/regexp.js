@@ -194,9 +194,7 @@ assertRegExp(/}/, '}');
 // Constructor and instanceOf tests.
 var __re = new RegExpJS(/[^a]*/);
 assert(__re.constructor === RegExp, 'Constructor is BuildInRegExp');
-
-// TODO: Is the following test possible to be fixed?
-// assert(__re instanceof RegExp, 'Instanceof check for BuildInRegExp');
+assert(__re instanceof RegExp, 'Instanceof check for BuildInRegExp');
 
 // ---
 

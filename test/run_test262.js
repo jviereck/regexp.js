@@ -59,21 +59,7 @@ var knownFailures = [
     'S15.10.2.12_A4_T1.js',
     'S15.10.2.12_A5_T1.js',
     'S15.10.2.12_A6_T1.js',
-    '15.10.2.8_A3_T18.js',
-    // Prevent prototype assignment not possible in JS.
-    'S15.10.5.1_A4.js',
-    // Following tests are not testable with this test runner setup,
-    // as the compared-against RegExp is replaced by the RegExpJS.
-    // Wrote similar tests in project's own test suite.
-    'S15.10.7_A3_T1.js',
-    'S15.10.7_A3_T2.js',
-    // "RegExp.prototype is itself a RegExp" - not sure how to make this
-    // work from within JS :/
-    '15.10.6.js',
-    // "RegExpJS.prototype.constructor === RegExp" does not work by design.
-    'S15.10.6.1_A1_T1.js',
-    // `(new RegExpJS) instanceof RegExp` check fails.
-    'S15.10.6.1_A1_T2.js'
+    '15.10.2.8_A3_T18.js'
 ];
 
 var skipped = 0;
@@ -102,10 +88,6 @@ function runTest(fullPath) {
             node.wrap('(new RegExpJS(%s))');
         }
     });
-
-    console.log('run: ' + fullPath);
-
-    // console.log(fileContent);
 
     var error = null;
     try {
