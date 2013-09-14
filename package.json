@@ -1,0 +1,20 @@
+{
+  "name": "RegExp.JS",
+  "version": "0.0.1",
+  "homepage": "http://jviereck.github.io/regexp.js/",
+  "repository": {
+    "type": "git",
+    "url": ""
+  },
+  "dependencies": {
+  },
+  "devDependencies": {
+    "shelljs": "0.1.2",
+    "burrito": "0.2.12"
+  },
+  "scripts": {
+    "test": "node test.js"
+  },
+  "author": "'Juilan Viereck' <julian.viereck@gmail.com>",
+  "license": "BSD"
+}
