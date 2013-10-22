@@ -5,7 +5,9 @@ Implementing the JavaScript RegExp object in pure JavaScript again.
 
 Demo: <http://jviereck.github.io/regexp.js/>
 
-A talk about RegExp.JS can be found [here](http://2013.jsconf.eu/speakers/julian-viereck-reimplement-regexp-in-javascript.html). Slides are available on [SpeakerDeck](https://speakerdeck.com/jviereck/reimplement-regexp-in-javascript).
+A talk about RegExp.JS can be found
+[here](http://2013.jsconf.eu/speakers/julian-viereck-reimplement-regexp-in-javascript.html).
+Slides are available on [SpeakerDeck](https://speakerdeck.com/jviereck/reimplement-regexp-in-javascript).
 
 ## Building and testing
 
