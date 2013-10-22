@@ -1,7 +1,7 @@
 RegExp.JS
 =========
 
-Implementing the JavaScript RegExp object in pure JavaScript again.
+Implementing the JavaScript RegExp object in pure JavaScript again. Demo: <http://jviereck.github.io/regexp.js/>
 
 Build the file `build/browser.js` by executing.
 
