@@ -1,7 +1,13 @@
 RegExp.JS
 =========
 
-Implementing the JavaScript RegExp object in pure JavaScript again. Demo: <http://jviereck.github.io/regexp.js/>
+Implementing the JavaScript RegExp object in pure JavaScript again.
+
+Demo: <http://jviereck.github.io/regexp.js/>
+
+A talk about RegExp.JS can be found [here](http://2013.jsconf.eu/speakers/julian-viereck-reimplement-regexp-in-javascript.html). Slides are available on [SpeakerDeck](https://speakerdeck.com/jviereck/reimplement-regexp-in-javascript).
+
+## Building and testing
 
 Build the file `build/browser.js` by executing.
 
@@ -26,5 +32,3 @@ to execute the tests from RegExp.JS themself and to run the test262 tests, run
 ```
 node test/run_test262.js
 ```
-
-More inforation: TODO.
