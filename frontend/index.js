@@ -184,7 +184,7 @@ window.onload = function() {
     editor._overlay = null;
 
     var hashData = parseHash();
-    if ('regexp' in hashData) regExpDom.value = hashData.regexp;
+    if ('regexp' in hashData) regExpEditor.setValue(hashData.regexp);
     if ('input' in hashData) editor.setValue(hashData.input);
 
     var matchItTimer = null;
